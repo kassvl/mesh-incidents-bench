@@ -52,7 +52,9 @@ echo "== running tool for ${TOOL_SECONDS}s: $*"
 # tool, with a watchdog that caps the window.
 "$@" >> "$OUT" 2>&1 &
 TOOL_PID=$!
-( sleep "$TOOL_SECONDS"; kill "$TOOL_PID" 2>/dev/null ) &
+# SIGTERM first, SIGKILL twenty seconds later: one HolmesGPT run ignored
+# the TERM and kept the harness waiting for seven hours.
+( sleep "$TOOL_SECONDS"; kill "$TOOL_PID" 2>/dev/null; sleep 20; kill -9 "$TOOL_PID" 2>/dev/null ) &
 WATCHDOG=$!
 wait "$TOOL_PID" 2>/dev/null || true
 kill "$WATCHDOG" 2>/dev/null || true
