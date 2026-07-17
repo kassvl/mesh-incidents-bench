@@ -47,11 +47,15 @@ echo "== running tool for ${TOOL_SECONDS}s: $*"
   echo "# date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
 } > "$OUT"
+# One-shot tools (an ask-style CLI) exit on their own; watcher-style tools
+# (meshmedic watch) run until the window closes. Support both: wait for the
+# tool, with a watchdog that caps the window.
 "$@" >> "$OUT" 2>&1 &
 TOOL_PID=$!
-sleep "$TOOL_SECONDS"
-kill "$TOOL_PID" 2>/dev/null || true
+( sleep "$TOOL_SECONDS"; kill "$TOOL_PID" 2>/dev/null ) &
+WATCHDOG=$!
 wait "$TOOL_PID" 2>/dev/null || true
+kill "$WATCHDOG" 2>/dev/null || true
 cat "$OUT"
 
 echo "== output saved to $OUT"
