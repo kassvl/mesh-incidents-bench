@@ -1,0 +1,5 @@
+# scenario: mtls-conflict
+# tool: /Users/kadirhan/meshmedic/meshmedic watch --catalog /Users/kadirhan/meshmedic/catalog --config harness/meshmedic-watch.yaml
+# date: 2026-07-17T03:47:38Z
+
+meshmedic: 2026/07/17 05:47:38 watching 7 scenarios for 1 targets against http://127.0.0.1:9090 every 15s

@@ -1,0 +1,87 @@
+# scenario: pool-overflow
+# tool: /Users/kadirhan/meshmedic/meshmedic watch --catalog /Users/kadirhan/meshmedic/catalog --config harness/meshmedic-watch.yaml
+# date: 2026-07-17T02:17:54Z
+
+meshmedic: 2026/07/17 04:17:54 watching 7 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+## Incident: Requests dropped by connection pool limits
+
+Scenario `connection-pool-overflow` (severity warning) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **13.11** (threshold > 1 for 60s) since 2026-07-17T02:17:54Z.
+
+### Diagnosis
+
+Requests are failing with the UO (upstream overflow) response flag, meaning Envoy's circuit breaker is shedding load because the configured connection pool for the destination is exhausted. If the destination has spare capacity (CPU and memory healthy), the limits are simply undersized for current traffic and can be raised. If the destination is saturated, raising limits makes things worse; the evidence queries make that call reviewable.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| destination-cpu-headroom | unavailable (query returned no samples) |
+| active-connections | unavailable (query returned no samples) |
+
+### Proposed patch (DestinationRule)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payments-pool
+  namespace: demo
+spec:
+  host: payments
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 512
+      http:
+        http1MaxPendingRequests: 256
+        http2MaxRequests: 512
+```
+
+### Rollback
+
+If UO drops but destination CPU saturates, the pool limit was doing its job; revert this patch and scale the destination workload instead. The reviewer should check the destination-cpu-headroom evidence before merging.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+## Incident: Sustained 5xx surge from a service
+
+Scenario `error-surge-outlier-ejection` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **0.7625** (threshold > 0.15 for 120s) since 2026-07-17T02:17:54Z.
+
+### Diagnosis
+
+A service's 5xx ratio holds above 15 percent. When the errors come from a subset of bad endpoints (bad node, wedged pod), ejecting unhealthy hosts from the load balancing pool restores service without touching the workload. Outlier detection does that automatically once configured.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| errors-by-pod | 19.08 |
+
+### Proposed patch (DestinationRule)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payments-outlier
+  namespace: demo
+spec:
+  host: payments
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 50
+```
+
+### Rollback
+
+If the 5xx ratio does not drop after ejection, the failure is uniform across endpoints (bad deploy, downstream dependency) and this patch is not the fix; revert it and check the canary-latency-rollback and upstream dependencies. maxEjectionPercent 50 caps the blast radius either way.
+
+This scenario requires human approval; nothing was applied to the cluster.
+

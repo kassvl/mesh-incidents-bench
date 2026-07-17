@@ -34,6 +34,22 @@ Scores are assigned by a human against the rubric in each `ground-truth.md`.
 Runs are honest: misses are published, including the benchmark author's own
 tool. See `results/`.
 
+## Leaderboard (v0.1, 2026-07-17)
+
+| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | total /24 |
+| --- | --- | --- | --- | --- | --- |
+| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 5 | 6 | 0 | **17** |
+| k8sgpt (no AI backend) | 0 | 0 | 0 | 0 | **0** |
+| HolmesGPT | not run yet (needs an LLM key); PRs welcome | | | | |
+
+\* Same author as this benchmark, and the scenarios overlap MeshMedic's
+catalog: a home game, disclosed as such in [results/meshmedic.md](results/meshmedic.md).
+The k8sgpt zero is not a k8sgpt bug: its analyzers inspect object state and
+every mesh incident here leaves the objects healthy. That gap is the point
+of the benchmark; details in [results/k8sgpt.md](results/k8sgpt.md).
+Everyone misses `mtls-conflict` in ambient mode so far, the author's tool
+included: the rejection happens at L4, below the request metrics.
+
 ## Testbed
 
 Scenarios run against the [MeshMedic demo environment](https://github.com/kassvl/meshmedic)
