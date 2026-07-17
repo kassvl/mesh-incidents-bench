@@ -12,9 +12,15 @@ sidecar), or apply a scoped PERMISSIVE PeerAuthentication on the affected
 workload as an explicit, temporary de-escalation while the client migrates.
 
 **Known hard case**: in ambient mode the rejection happens at L4 (ztunnel),
-so it may never appear in L7 request metrics. Metric-only tools are expected
-to struggle here; that is the point of the scenario. Signals exist in ztunnel
-logs and in the client's own error rate.
+so it never appears in L7 request metrics. Metric-only tools watching
+request telemetry are expected to struggle here; that is the point of the
+scenario. The signal does exist, one layer down, and is scraped by the
+stock Istio Prometheus addon: ztunnel reports
+`istio_tcp_connections_closed_total{reporter="destination",
+response_flags="DENY", connection_security_policy="unknown"}` with full
+source/destination labels (including `source_principal="unknown"` for the
+identity-less client), and its access logs mark the same denials. Tools
+are scored on finding it, not on which of those surfaces they use.
 
 ## Scoring rubric
 

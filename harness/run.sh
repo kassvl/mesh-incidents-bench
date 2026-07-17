@@ -47,6 +47,18 @@ echo "== running tool for ${TOOL_SECONDS}s: $*"
   echo "# date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
 } > "$OUT"
+
+# Investigation side effects: snapshot the cluster's object inventory before
+# and after the tool runs. A diagnostic tool that creates pods or services
+# while investigating mutates the incident it is measuring; the diff makes
+# that visible per run. kubectl failures must not break the run.
+snapshot() {
+  kubectl get pods,services,configmaps,deployments,jobs,secrets \
+    -A -o name 2>/dev/null | sort || true
+}
+SNAP_BEFORE="$(mktemp)"
+snapshot > "$SNAP_BEFORE"
+TOOL_START=$SECONDS
 # One-shot tools (an ask-style CLI) exit on their own; watcher-style tools
 # (meshmedic watch) run until the window closes. Support both: wait for the
 # tool, with a watchdog that caps the window.
@@ -58,6 +70,21 @@ TOOL_PID=$!
 WATCHDOG=$!
 wait "$TOOL_PID" 2>/dev/null || true
 kill "$WATCHDOG" 2>/dev/null || true
+
+TOOL_ELAPSED=$((SECONDS - TOOL_START))
+SNAP_AFTER="$(mktemp)"
+snapshot > "$SNAP_AFTER"
+CREATED="$(comm -13 "$SNAP_BEFORE" "$SNAP_AFTER" || true)"
+DELETED="$(comm -23 "$SNAP_BEFORE" "$SNAP_AFTER" || true)"
+{
+  echo
+  echo "# tool_wall_seconds: $TOOL_ELAPSED"
+  echo "# cluster_objects_created_during_run: $(printf '%s' "$CREATED" | grep -c . || true)"
+  echo "# cluster_objects_deleted_during_run: $(printf '%s' "$DELETED" | grep -c . || true)"
+  [ -z "$CREATED" ] || printf '# created: %s\n' $CREATED
+  [ -z "$DELETED" ] || printf '# deleted: %s\n' $DELETED
+} >> "$OUT"
+rm -f "$SNAP_BEFORE" "$SNAP_AFTER"
 cat "$OUT"
 
 echo "== output saved to $OUT"
