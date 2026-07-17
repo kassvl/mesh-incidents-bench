@@ -19,6 +19,14 @@ OUT="$OUT_DIR/${ID}-${TOOL_NAME}-$(date +%Y%m%d-%H%M%S).txt"
 cleanup() { "$SCENARIO_DIR/reset.sh" || true; }
 trap cleanup EXIT
 
+# Residual telemetry from a previous scenario decays over the PromQL rate
+# windows (2m in the scenarios here) and can make a tool fire on the wrong
+# incident. Learned the hard way: a stale UO tail from pool-overflow leaked
+# into the next run. Let signals settle before injecting.
+QUIESCE="${QUIESCE:-150}"
+echo "== quiesce: waiting ${QUIESCE}s for residual signals to clear"
+sleep "$QUIESCE"
+
 echo "== inject: $ID"
 "$SCENARIO_DIR/inject.sh"
 
