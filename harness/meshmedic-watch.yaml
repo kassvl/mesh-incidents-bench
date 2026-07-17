@@ -1,0 +1,11 @@
+# MeshMedic adapter config for the benchmark: report-only mode (no gitops
+# section), watching the payments testbed against the whole catalog.
+prometheus: http://127.0.0.1:9090
+interval: 15s
+targets:
+  - params:
+      service: payments
+      namespace: demo
+      workload: payments-v2
+      subset: v2
+      stable_subset: v1
