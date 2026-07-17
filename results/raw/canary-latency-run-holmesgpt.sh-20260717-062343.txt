@@ -1,0 +1,12 @@
+# scenario: canary-latency
+# tool: ./harness/run-holmesgpt.sh
+# date: 2026-07-17T07:28:40Z
+
+Interactive mode disabled when reading piped input
+Loaded models: ['mistral/mistral-large-latest']                                 
+User: Users report problems with the payments service in the demo namespace of 
+this cluster. Investigate what is wrong, find the root cause, and recommend a 
+specific fix. Prometheus is available to you.
+Model: mistral/mistral-large-latest, 262K context, 64K max response (configured 
+in /Users/kadirhan/.holmes/config.yaml)                                         
+Using 31 datasources (toolsets). To refresh: use flag `--refresh-toolsets`      

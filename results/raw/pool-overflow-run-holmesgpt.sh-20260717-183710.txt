@@ -1,0 +1,445 @@
+# scenario: pool-overflow
+# tool: ./harness/run-holmesgpt.sh
+# date: 2026-07-17T16:40:03Z
+
+Interactive mode disabled when reading piped input
+Loaded models: ['mistral/mistral-large-latest']                                 
+User: Users report problems with the payments service in the demo namespace of 
+this cluster. Investigate what is wrong, find the root cause, and recommend a 
+specific fix. Prometheus is available to you.
+Model: mistral/mistral-large-latest, 262K context, 64K max response (configured 
+in /Users/kadirhan/.holmes/config.yaml)                                         
+Using 31 datasources (toolsets). To refresh: use flag `--refresh-toolsets`      
+Running tool #1 TodoWrite: Update investigation tasks                           
+Task List:                                                                      
++----+--------------------------------------------------------------------------
+--------------------+-------------+                                             
+| ID | Content                                                                  
+| Status      |                                                                 
++----+--------------------------------------------------------------------------
+--------------------+-------------+                                             
+| 1  | Identify the exact name of the payments service in the demo namespace.   
+| [ ] pending |                                                                 
+| 2  | Check the status of the payments service pods in the demo namespace.     
+| [ ] pending |                                                                 
+| 3  | Fetch logs from the payments service pods to identify errors or crashes. 
+| [ ] pending |                                                                 
+| 4  | Check Prometheus metrics for the payments service (e.g., CPU, memory,    
+latency, error rates). | [ ] pending |                                          
+| 5  | Investigate dependencies of the payments service (e.g., databases,       
+external APIs).           | [ ] pending |                                       
+| 6  | Check Kubernetes events in the demo namespace for issues related to the  
+payments service.    | [ ] pending |                                            
+| 7  | Analyze findings to determine the root cause of the payments service     
+issues.                 | [ ] pending |                                         
+| 8  | Recommend a specific fix based on the root cause analysis.               
+| [ ] pending |                                                                 
++----+--------------------------------------------------------------------------
+--------------------+-------------+                                             
+  Finished #1 in 0.00s, output length: 1,023 characters (16 lines) - /show 1 to 
+view contents                                                                   
+The AI requested 1 tool call(s).                                                
+                                                                                
+Lazily initializing toolset kubernetes/core...                                  
+✅ Toolset kubernetes/core                                                      
+Running tool #2 kubernetes_tabular_query: filter: kubectl get services          
+columns='NAME:.metadata.name,TYPE:.spec.type,SELECTOR:.spec.selector'           
+filter=payments                                                                 
+Running tool #4 kubernetes_tabular_query: filter: kubectl get deployments       
+columns='NAME:.metadata.name,READY:.status.readyReplicas,UP-TO-DATE:.status.upda
+tedReplicas,AVAILABLE:.status.availableReplicas' filter=payments                
+Running tool #3 kubernetes_tabular_query: filter: kubectl get pods              
+columns=''NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName,RESTARTS:
+.status.containerStatuses[0].restartCount'' filter=payments                     
+  Finished #4 in 0.60s, output length: 261 characters (9 lines) - /show 4 to    
+view contents                                                                   
+The AI requested 3 tool call(s).                                                
+  Finished #2 in 0.78s, output length: 207 characters (8 lines) - /show 2 to    
+view contents                                                                   
+  Finished #3 in 1.12s, output length: 380 characters (9 lines) - /show 3 to    
+view contents                                                                   
+                                                                                
+Running tool #5 TodoWrite: Update investigation tasks                           
+Task List:                                                                      
++----+--------------------------------------------------------------------------
+--------------------+-----------------+                                         
+| ID | Content                                                                  
+| Status          |                                                             
++----+--------------------------------------------------------------------------
+--------------------+-----------------+                                         
+| 1  | Identify the exact name of the payments service in the demo namespace.   
+| [✓] completed   |                                                             
+| 2  | Check the status of the payments service pods in the demo namespace.     
+| [✓] completed   |                                                             
+| 3  | Fetch logs from the payments service pods to identify errors or crashes. 
+| [~] in_progress |                                                             
+| 4  | Check Prometheus metrics for the payments service (e.g., CPU, memory,    
+latency, error rates). | [~] in_progress |                                      
+| 5  | Investigate dependencies of the payments service (e.g., databases,       
+external APIs).           | [ ] pending     |                                   
+| 6  | Check Kubernetes events in the demo namespace for issues related to the  
+payments service.    | [ ] pending     |                                        
+| 7  | Analyze findings to determine the root cause of the payments service     
+issues.                 | [ ] pending     |                                     
+| 8  | Recommend a specific fix based on the root cause analysis.               
+| [ ] pending     |                                                             
++----+--------------------------------------------------------------------------
+--------------------+-----------------+                                         
+  Finished #5 in 0.00s, output length: 1,023 characters (16 lines) - /show 5 to 
+view contents                                                                   
+The AI requested 1 tool call(s).                                                
+                                                                                
+Running tool #6 fetch_pod_logs: Fetch Logs (pod=payments-v1-855fd67c95-pdn47,   
+namespace=demo)                                                                 
+Running tool #7 fetch_pod_logs: Fetch Logs (pod=payments-v2-57d8bfdccf-jhmwd,   
+namespace=demo)                                                                 
+Running tool #8 kubernetes_tabular_query: filter: kubectl get endpoints         
+columns='NAME:.metadata.name,SUBSETS:.subsets' filter=payments                  
+Lazily initializing toolset bash...                                             
+✅ Toolset bash                                                                 
+Running tool #9 bash: kubectl get events -n demo                                
+--sort-by='.metadata.creationTimestamp' --field-selector type!=Normal | grep -i 
+payment                                                                         
+Executing bash command: kubectl get events -n demo                              
+--sort-by='.metadata.creationTimestamp' --field-selector type!=Normal | grep -i 
+payment                                                                         
+  Finished #9 in 0.17s, output length: 152 characters (2 lines) - /show 9 to    
+view contents                                                                   
+The AI requested 4 tool call(s).                                                
+  Finished #7 in 0.37s, output length: 7,798 characters (131 lines) - /show 7 to
+view contents                                                                   
+  Finished #6 in 0.37s, output length: 8,063 characters (131 lines) - /show 6 to
+view contents                                                                   
+  Finished #8 in 0.41s, output length: 655 characters (8 lines) - /show 8 to    
+view contents                                                                   
+                                                                                
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+LLM call failed on model=mistral/mistral-large-latest (streaming iteration 5):  
+RateLimitError: litellm.RateLimitError: RateLimitError: MistralException -      
+{"object":"error","message":"Rate limit                                         
+exceeded","type":"rate_limited","param":null,"code":"1300","raw_status_code":429
+}                                                                               
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/llm_http_handler.py", line 265, in _make_common_sync_call   
+    response = sync_httpx_client.post(                                          
+        url=api_base,                                                           
+    ...<8 lines>...                                                             
+        logging_obj=logging_obj,                                                
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/http_handler.py", line 1200, in post                        
+    _raise_masked_sync_error(e, stream)                                         
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^                                         
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/http_handler.py", line 441, in _raise_masked_sync_error     
+    raise MaskedHTTPStatusError(e, message=_text, text=_text) from None         
+litellm.llms.custom_httpx.http_handler.MaskedHTTPStatusError: Client error '429 
+Too Many Requests' for url 'https://api.mistral.ai/v1/chat/completions'         
+For more information check:                                                     
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429                    
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/main.py", line 2801, in completion                                            
+    response = base_llm_http_handler.completion(                                
+        model=model,                                                            
+    ...<15 lines>...                                                            
+        provider_config=provider_config,                                        
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/llm_http_handler.py", line 589, in completion               
+    response = self._make_common_sync_call(                                     
+        sync_httpx_client=sync_httpx_client,                                    
+    ...<7 lines>...                                                             
+        logging_obj=logging_obj,                                                
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/llm_http_handler.py", line 290, in _make_common_sync_call   
+    raise self._handle_error(e=e, provider_config=provider_config)              
+          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/custom_httpx/llm_http_handler.py", line 5259, in _handle_error           
+    raise provider_config.get_error_class(                                      
+    ...<3 lines>...                                                             
+    )                                                                           
+litellm.llms.openai.common_utils.OpenAIError: {"object":"error","message":"Rate 
+limit                                                                           
+exceeded","type":"rate_limited","param":null,"code":"1300","raw_status_code":429
+}                                                                               
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/holmes
+/core/tool_calling_llm.py", line 1163, in call_stream                           
+    full_response = self.llm.completion(                                        
+        messages=parse_messages_tags(messages),  # type: ignore                 
+    ...<5 lines>...                                                             
+        drop_params=True,                                                       
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/holmes
+/core/llm.py", line 755, in completion                                          
+    result = litellm_to_use.completion(                                         
+        model=litellm_model_name,                                               
+    ...<12 lines>...                                                            
+        **cache_kwargs,                                                         
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/utils.py", line 1775, in wrapper                                              
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/utils.py", line 1596, in wrapper                                              
+    result = original_function(*args, **kwargs)                                 
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/main.py", line 4614, in completion                                            
+    raise exception_type(                                                       
+          ~~~~~~~~~~~~~~^                                                       
+        model=model,                                                            
+        ^^^^^^^^^^^^                                                            
+    ...<3 lines>...                                                             
+        extra_kwargs=kwargs,                                                    
+        ^^^^^^^^^^^^^^^^^^^^                                                    
+    )                                                                           
+    ^                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/litellm_core_utils/exception_mapping_utils.py", line 2473, in exception_type  
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/litellm_core_utils/exception_mapping_utils.py", line 402, in exception_type   
+    raise RateLimitError(                                                       
+    ...<4 lines>...                                                             
+    )                                                                           
+litellm.exceptions.RateLimitError: litellm.RateLimitError: RateLimitError:      
+MistralException - {"object":"error","message":"Rate limit                      
+exceeded","type":"rate_limited","param":null,"code":"1300","raw_status_code":429
+}                                                                               
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/llm_http_handler.py:265 in _make_common_sync_call     │
+│                                                                              │
+│     262 │   │                                                                │
+│     263 │   │   for i in range(max(max_retry_on_unprocessable_entity_error,  │
+│     264 │   │   │   try:                                                     │
+│ ❱   265 │   │   │   │   response = sync_httpx_client.post(                   │
+│     266 │   │   │   │   │   url=api_base,                                    │
+│     267 │   │   │   │   │   headers=headers,                                 │
+│     268 │   │   │   │   │   data=(                                           │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/http_handler.py:1200 in post                          │
+│                                                                              │
+│   1197 │   │   │   │   llm_provider="litellm-httpx-handler",                 │
+│   1198 │   │   │   )                                                         │
+│   1199 │   │   except httpx.HTTPStatusError as e:                            │
+│ ❱ 1200 │   │   │   _raise_masked_sync_error(e, stream)                       │
+│   1201 │   │   except Exception as e:                                        │
+│   1202 │   │   │   raise e                                                   │
+│   1203                                                                       │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/http_handler.py:441 in _raise_masked_sync_error       │
+│                                                                              │
+│    438 │   │   │   except Exception:                                         │
+│    439 │   │   │   │   pass                                                  │
+│    440 │   _text = mask_sensitive_info(_safe_get_response_text(e.response))  │
+│ ❱  441 │   raise MaskedHTTPStatusError(e, message=_text, text=_text) from No │
+│    442                                                                       │
+│    443                                                                       │
+│    444 async def _raise_masked_async_error(e: httpx.HTTPStatusError, stream: │
+╰──────────────────────────────────────────────────────────────────────────────╯
+MaskedHTTPStatusError: Client error '429 Too Many Requests' for url 
+'https://api.mistral.ai/v1/chat/completions'
+For more information check: 
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+
+During handling of the above exception, another exception occurred:
+
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/main.py:2801 in completion                                              │
+│                                                                              │
+│   2798 │   │   │   │   or "https://api.mistral.ai/v1"                        │
+│   2799 │   │   │   )                                                         │
+│   2800 │   │   │                                                             │
+│ ❱ 2801 │   │   │   response = base_llm_http_handler.completion(              │
+│   2802 │   │   │   │   model=model,                                          │
+│   2803 │   │   │   │   messages=messages,                                    │
+│   2804 │   │   │   │   api_base=api_base,                                    │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/llm_http_handler.py:589 in completion                 │
+│                                                                              │
+│     586 │   │   else:                                                        │
+│     587 │   │   │   sync_httpx_client = client                               │
+│     588 │   │                                                                │
+│ ❱   589 │   │   response = self._make_common_sync_call(                      │
+│     590 │   │   │   sync_httpx_client=sync_httpx_client,                     │
+│     591 │   │   │   provider_config=provider_config,                         │
+│     592 │   │   │   api_base=api_base,                                       │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/llm_http_handler.py:290 in _make_common_sync_call     │
+│                                                                              │
+│     287 │   │   │   │   │   )                                                │
+│     288 │   │   │   │   │   continue                                         │
+│     289 │   │   │   │   else:                                                │
+│ ❱   290 │   │   │   │   │   raise self._handle_error(e=e, provider_config=pr │
+│     291 │   │   │   except Exception as e:                                   │
+│     292 │   │   │   │   raise self._handle_error(e=e, provider_config=provid │
+│     293 │   │   │   break                                                    │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/custom_httpx/llm_http_handler.py:5259 in _handle_error             │
+│                                                                              │
+│    5256 │   │   │   │   headers=error_headers,                               │
+│    5257 │   │   │   )                                                        │
+│    5258 │   │                                                                │
+│ ❱  5259 │   │   raise provider_config.get_error_class(                       │
+│    5260 │   │   │   error_message=error_text,                                │
+│    5261 │   │   │   status_code=status_code,                                 │
+│    5262 │   │   │   headers=error_headers,                                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+OpenAIError: {"object":"error","message":"Rate limit 
+exceeded","type":"rate_limited","param":null,"code":"1300","raw_status_code":429
+}
+
+During handling of the above exception, another exception occurred:
+
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/main.py:412 in ask                                                       │
+│                                                                              │
+│    409 │   │   │   f'holmes ask "{prompt}"', span_type=SpanType.TASK         │
+│    410 │   │   ) as trace_span:                                              │
+│    411 │   │   │   trace_span.log(input=prompt, metadata={"type": "user_ques │
+│ ❱  412 │   │   │   response = ai.call(messages, trace_span=trace_span, reque │
+│    413 │   │   │   trace_span.log(                                           │
+│    414 │   │   │   │   output=response.result,                               │
+│    415 │   │   │   )                                                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/sen │
+│ try_sdk/tracing_utils.py:1106 in sync_wrapper                                │
+│                                                                              │
+│   1103 │   │   │   │   │   "Please start a Sentry transaction before calling │
+│   1104 │   │   │   │   │   qualname_from_function(f),                        │
+│   1105 │   │   │   │   )                                                     │
+│ ❱ 1106 │   │   │   │   return f(*args, **kwargs)                             │
+│   1107 │   │   │                                                             │
+│   1108 │   │   │   if isinstance(current_span, StreamedSpan):                │
+│   1109 │   │   │   │   warnings.warn(                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/tool_calling_llm.py:612 in call                                     │
+│                                                                              │
+│    609 │   │   │   start_tool_count = 0                                      │
+│    610 │   │   │   saw_tool_results = False                                  │
+│    611 │   │   │                                                             │
+│ ❱  612 │   │   │   for event in stream:                                      │
+│    613 │   │   │   │   # Log blank line when a tool batch ends (transition a │
+│    614 │   │   │   │   if saw_tool_results and event.event != StreamEvents.T │
+│    615 │   │   │   │   │   display_logger.info("")                           │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/tool_calling_llm.py:1163 in call_stream                             │
+│                                                                              │
+│   1160 │   │   │   with trace_span.start_span(name="gen_ai.chat") as llm_spa │
+│   1161 │   │   │     try:                                                    │
+│   1162 │   │   │   │   _llm_call_start = time.time()                         │
+│ ❱ 1163 │   │   │   │   full_response = self.llm.completion(                  │
+│   1164 │   │   │   │   │   messages=parse_messages_tags(messages),  # type:  │
+│   1165 │   │   │   │   │   tools=tools,                                      │
+│   1166 │   │   │   │   │   tool_choice=tool_choice,                          │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/llm.py:755 in completion                                            │
+│                                                                              │
+│    752 │   │   │   │   }                                                     │
+│    753 │   │   │   ]                                                         │
+│    754 │   │                                                                 │
+│ ❱  755 │   │   result = litellm_to_use.completion(                           │
+│    756 │   │   │   model=litellm_model_name,                                 │
+│    757 │   │   │   api_key=self.api_key,                                     │
+│    758 │   │   │   base_url=self.api_base,                                   │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/utils.py:1775 in wrapper                                                │
+│                                                                              │
+│   1772 │   │   │   │   logging_obj.failure_handler(                          │
+│   1773 │   │   │   │   │   e, traceback_exception, start_time, end_time      │
+│   1774 │   │   │   │   )  # DO NOT MAKE THREADED - router retry fallback rel │
+│ ❱ 1775 │   │   │   raise e                                                   │
+│   1776 │                                                                     │
+│   1777 │   @wraps(original_function)                                         │
+│   1778 │   async def wrapper_async(*args, **kwargs):  # noqa: PLR0915        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/utils.py:1596 in wrapper                                                │
+│                                                                              │
+│   1593 │   │   │   │   except Exception as e:                                │
+│   1594 │   │   │   │   │   print_verbose(f"Error while checking max token li │
+│   1595 │   │   │   # MODEL CALL                                              │
+│ ❱ 1596 │   │   │   result = original_function(*args, **kwargs)               │
+│   1597 │   │   │   end_time = datetime.datetime.now()                        │
+│   1598 │   │   │   if _is_streaming_request(                                 │
+│   1599 │   │   │   │   kwargs=kwargs,                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/main.py:4614 in completion                                              │
+│                                                                              │
+│   4611 │   │   return response                                               │
+│   4612 │   except Exception as e:                                            │
+│   4613 │   │   ## Map to OpenAI Exception                                    │
+│ ❱ 4614 │   │   raise exception_type(                                         │
+│   4615 │   │   │   model=model,                                              │
+│   4616 │   │   │   custom_llm_provider=custom_llm_provider,                  │
+│   4617 │   │   │   original_exception=e,                                     │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/litellm_core_utils/exception_mapping_utils.py:2473 in exception_type    │
+│                                                                              │
+│   2470 │   │   # don't let an error with mapping interrupt the user from rec │
+│   2471 │   │   if exception_mapping_worked:                                  │
+│   2472 │   │   │   setattr(e, "litellm_response_headers", litellm_response_h │
+│ ❱ 2473 │   │   │   raise e                                                   │
+│   2474 │   │   else:                                                         │
+│   2475 │   │   │   for error_type in litellm.LITELLM_EXCEPTION_TYPES:        │
+│   2476 │   │   │   │   if isinstance(e, error_type):                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/litellm_core_utils/exception_mapping_utils.py:402 in exception_type     │
+│                                                                              │
+│    399 │   │   │   │                                                         │
+│    400 │   │   │   │   if ExceptionCheckers.is_error_str_rate_limit(error_st │
+│    401 │   │   │   │   │   exception_mapping_worked = True                   │
+│ ❱  402 │   │   │   │   │   raise RateLimitError(                             │
+│    403 │   │   │   │   │   │   message=f"RateLimitError: {exception_provider │
+│    404 │   │   │   │   │   │   model=model,                                  │
+│    405 │   │   │   │   │   │   llm_provider=custom_llm_provider,             │
+╰──────────────────────────────────────────────────────────────────────────────╯
+RateLimitError: litellm.RateLimitError: RateLimitError: MistralException - 
+{"object":"error","message":"Rate limit 
+exceeded","type":"rate_limited","param":null,"code":"1300","raw_status_code":429
+}

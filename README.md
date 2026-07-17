@@ -36,19 +36,29 @@ tool. See `results/`.
 
 ## Leaderboard (v0.1, 2026-07-17)
 
-| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | total /24 |
+| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | total |
 | --- | --- | --- | --- | --- | --- |
-| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 5 | 6 | 0 | **17** |
-| k8sgpt (no AI backend) | 0 | 0 | 0 | 0 | **0** |
-| HolmesGPT | not run yet (needs an LLM key); PRs welcome | | | | |
+| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 5 | 6 | 0 | **17 / 24** |
+| HolmesGPT (mistral-large) | 6 | 5 | n/s † | n/s † | **11 / 12 scored** |
+| k8sgpt (with and without AI) | 0 | 0 | 0 | 0 | **0 / 24** |
 
 \* Same author as this benchmark, and the scenarios overlap MeshMedic's
 catalog: a home game, disclosed as such in [results/meshmedic.md](results/meshmedic.md).
-The k8sgpt zero is not a k8sgpt bug: its analyzers inspect object state and
-every mesh incident here leaves the objects healthy. That gap is the point
-of the benchmark; details in [results/k8sgpt.md](results/k8sgpt.md).
-Everyone misses `mtls-conflict` in ambient mode so far, the author's tool
-included: the rejection happens at L4, below the request metrics.
+
+† Not scored: the key's rate tier (4 req/min, 250K tokens/min) killed the
+investigations even with request pacing; see [results/holmesgpt.md](results/holmesgpt.md).
+
+What the numbers actually say: on the scenarios it completed, HolmesGPT
+matched MeshMedic point for point and produced the deepest diagnosis of
+any tool, at the cost of a nine-minute LLM investigation per incident and
+inheriting its provider's failure modes mid-incident. MeshMedic answers in
+seconds, deterministically, with a ready-to-merge patch, but only for
+failure modes in its catalog. The k8sgpt zero is not a k8sgpt bug: its
+analyzers inspect object state, mesh incidents leave objects healthy, and
+an AI backend cannot explain what the scanner never sees
+([results/k8sgpt.md](results/k8sgpt.md)). Everyone misses `mtls-conflict`
+in ambient mode so far, the author's tool included: the rejection happens
+at L4, below the request metrics every tool here watches.
 
 ## Testbed
 
