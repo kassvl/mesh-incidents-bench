@@ -1,0 +1,60 @@
+# scenario: canary-latency
+# tool: /Users/kadirhan/meshmedic/meshmedic watch --config /Users/kadirhan/mesh-incidents-bench/harness/meshmedic-watch.yaml --catalog /Users/kadirhan/meshmedic/catalog
+# date: 2026-07-17T21:07:14Z
+
+meshmedic: 2026/07/17 23:07:14 watching 8 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+## Incident: Canary subset latency regression
+
+Scenario `canary-latency-rollback` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **2482** (threshold > 1000 for 90s) since 2026-07-17T21:07:14Z.
+
+### Diagnosis
+
+A newly shifted traffic subset (canary) shows p99 latency far above the stable subset. The fastest safe move during an incident is to send traffic back to the stable subset and investigate the canary offline. This entry assumes the DestinationRule defines the failing subset and a stable subset.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| p99-stable-for-comparison | 48.46 |
+| canary-request-share | 0.1807 |
+
+### Configuration evidence
+
+- canary-deployment-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].env`: `NAME=payments-v2 MESSAGE=ok TIMING_50_PERCENTILE=1200ms TIMING_90_PERCENTILE=1500ms`
+- canary-deployment-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].resources`: `{}`
+
+### Proposed patch (VirtualService)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: payments
+  namespace: demo
+spec:
+  hosts:
+    - payments
+  http:
+    - route:
+        - destination:
+            host: payments
+            subset: v1
+          weight: 100
+        - destination:
+            host: payments
+            subset: v2
+          weight: 0
+```
+
+### Rollback
+
+Restore the previous VirtualService weights once the canary's p99 is back under the threshold in a staging replay, or roll forward with a fixed canary image. The PR that shifted traffic contains the prior weights in its diff.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+
+# tool_wall_seconds: 210
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

@@ -1,0 +1,9 @@
+# scenario: client-dns-typo
+# tool: /Users/kadirhan/meshmedic/meshmedic watch --config /Users/kadirhan/mesh-incidents-bench/harness/meshmedic-watch.yaml --catalog /Users/kadirhan/meshmedic/catalog
+# date: 2026-07-17T22:51:32Z
+
+meshmedic: 2026/07/18 00:51:32 watching 8 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+
+# tool_wall_seconds: 150
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

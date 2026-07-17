@@ -1,0 +1,489 @@
+# scenario: noise-only
+# tool: ./harness/run-holmesgpt.sh
+# date: 2026-07-17T21:54:25Z
+
+Interactive mode disabled when reading piped input
+Model 'openai/mistral-large-latest' has no entry in litellm's cost map and no   
+input/output_cost_per_token configured. Usage event costs for this model will be
+0. Add input_cost_per_token and output_cost_per_token to its model_list.yaml    
+entry to enable cost tracking.                                                  
+Loaded models: ['openai/mistral-large-latest']                                  
+User: Users report problems with the payments service in the demo namespace of 
+this cluster. Investigate what is wrong, find the root cause, and recommend a 
+specific fix. Prometheus is available to you.
+Using selected model: openai/mistral-large-latest                               
+Couldn't find model openai/mistral-large-latest in litellm's model list (tried: 
+openai/mistral-large-latest, mistral-large-latest), using default 200000 tokens 
+for max_input_tokens. To override, set OVERRIDE_MAX_CONTENT_SIZE environment    
+variable to the correct value for your model.                                   
+Couldn't find model openai/mistral-large-latest in litellm's model list (tried: 
+openai/mistral-large-latest, mistral-large-latest), using 64000 tokens for      
+max_output_tokens. To override, set OVERRIDE_MAX_OUTPUT_TOKEN environment       
+variable to the correct value for your model.                                   
+Model: openai/mistral-large-latest, 200K context, 64K max response (default,    
+change with --model, for all options see https://holmesgpt.dev/ai-providers)    
+Using 31 datasources (toolsets). To refresh: use flag `--refresh-toolsets`      
+Running tool #1 TodoWrite: Update investigation tasks                           
+Task List:                                                                      
++----+--------------------------------------------------------------------------
+-------------+-------------+                                                    
+| ID | Content                                                                  
+| Status      |                                                                 
++----+--------------------------------------------------------------------------
+-------------+-------------+                                                    
+| 1  | Identify the exact name of the payments service in the demo namespace    
+| [ ] pending |                                                                 
+| 2  | Check the status of the payments service pods in the demo namespace      
+| [ ] pending |                                                                 
+| 3  | Fetch logs from the payments service pods to identify errors or issues   
+| [ ] pending |                                                                 
+| 4  | Check Prometheus metrics for the payments service (CPU, memory, latency, 
+error rates) | [ ] pending |                                                    
+| 5  | Investigate dependencies of the payments service (e.g., databases,       
+external APIs)     | [ ] pending |                                              
+| 6  | Analyze network connectivity and service endpoints for the payments      
+service           | [ ] pending |                                               
+| 7  | Summarize findings and recommend a specific fix                          
+| [ ] pending |                                                                 
++----+--------------------------------------------------------------------------
+-------------+-------------+                                                    
+  Finished #1 in 0.00s, output length: 901 characters (15 lines) - /show 1 to   
+view contents                                                                   
+The AI requested 1 tool call(s).                                                
+                                                                                
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mProvider List: https://docs.litellm.ai/docs/providers[0m
+
+LLM BadRequestError on model=openai/mistral-large-latest (streaming iteration   
+2): litellm.BadRequestError: OpenAIException - Error code: 422 - {'detail':     
+[{'type': 'extra_forbidden', 'loc': ['body', 'messages', 2, 'assistant',        
+'provider_specific_fields'], 'msg': 'Extra inputs are not permitted', 'input':  
+{'refusal': None}}]}                                                            
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/openai/openai.py", line 817, in completion                               
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/openai/openai.py", line 780, in completion                               
+    ) = self.make_sync_openai_chat_completion_request(                          
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^                          
+        openai_client=openai_client,                                            
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                            
+    ...<2 lines>...                                                             
+        logging_obj=logging_obj,                                                
+        ^^^^^^^^^^^^^^^^^^^^^^^^                                                
+    )                                                                           
+    ^                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/litellm_core_utils/logging_utils.py", line 344, in sync_wrapper               
+    result = func(*args, **kwargs)                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/openai/openai.py", line 503, in make_sync_openai_chat_completion_request 
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/openai/openai.py", line 478, in make_sync_openai_chat_completion_request 
+    raw_response = openai_client.chat.completions.with_raw_response.create(     
+        **data, timeout=timeout                                                 
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/openai
+/_legacy_response.py", line 367, in wrapped                                     
+    return cast(LegacyAPIResponse[R], func(*args, **kwargs))                    
+                                      ~~~~^^^^^^^^^^^^^^^^^                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/openai
+/_utils/_utils.py", line 298, in wrapper                                        
+    return func(*args, **kwargs)                                                
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/openai
+/resources/chat/completions/completions.py", line 1281, in create               
+    return self._post(                                                          
+           ~~~~~~~~~~^                                                          
+        "/chat/completions",                                                    
+        ^^^^^^^^^^^^^^^^^^^^                                                    
+    ...<53 lines>...                                                            
+        stream_cls=Stream[ChatCompletionChunk],                                 
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                 
+    )                                                                           
+    ^                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/openai
+/_base_client.py", line 1332, in post                                           
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream,           
+stream_cls=stream_cls))                                                         
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^                                                                    
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/openai
+/_base_client.py", line 1105, in request                                        
+    raise self._make_status_error_from_response(err.response) from None         
+openai.UnprocessableEntityError: Error code: 422 - {'detail': [{'type':         
+'extra_forbidden', 'loc': ['body', 'messages', 2, 'assistant',                  
+'provider_specific_fields'], 'msg': 'Extra inputs are not permitted', 'input':  
+{'refusal': None}}]}                                                            
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/main.py", line 2781, in completion                                            
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/main.py", line 2753, in completion                                            
+    response = openai_chat_completions.completion(                              
+        model=model,                                                            
+    ...<16 lines>...                                                            
+        shared_session=shared_session,                                          
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/llms/openai/openai.py", line 863, in completion                               
+    raise OpenAIError(                                                          
+    ...<4 lines>...                                                             
+    )                                                                           
+litellm.llms.openai.common_utils.OpenAIError: Error code: 422 - {'detail':      
+[{'type': 'extra_forbidden', 'loc': ['body', 'messages', 2, 'assistant',        
+'provider_specific_fields'], 'msg': 'Extra inputs are not permitted', 'input':  
+{'refusal': None}}]}                                                            
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/holmes
+/core/tool_calling_llm.py", line 1163, in call_stream                           
+    full_response = self.llm.completion(                                        
+        messages=parse_messages_tags(messages),  # type: ignore                 
+    ...<5 lines>...                                                             
+        drop_params=True,                                                       
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/holmes
+/core/llm.py", line 755, in completion                                          
+    result = litellm_to_use.completion(                                         
+        model=litellm_model_name,                                               
+    ...<12 lines>...                                                            
+        **cache_kwargs,                                                         
+    )                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/utils.py", line 1775, in wrapper                                              
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/utils.py", line 1596, in wrapper                                              
+    result = original_function(*args, **kwargs)                                 
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/main.py", line 4614, in completion                                            
+    raise exception_type(                                                       
+          ~~~~~~~~~~~~~~^                                                       
+        model=model,                                                            
+        ^^^^^^^^^^^^                                                            
+    ...<3 lines>...                                                             
+        extra_kwargs=kwargs,                                                    
+        ^^^^^^^^^^^^^^^^^^^^                                                    
+    )                                                                           
+    ^                                                                           
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/litellm_core_utils/exception_mapping_utils.py", line 2473, in exception_type  
+    raise e                                                                     
+  File                                                                          
+"/Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/litell
+m/litellm_core_utils/exception_mapping_utils.py", line 579, in exception_type   
+    raise BadRequestError(                                                      
+    ...<6 lines>...                                                             
+    )                                                                           
+litellm.exceptions.BadRequestError: litellm.BadRequestError: OpenAIException -  
+Error code: 422 - {'detail': [{'type': 'extra_forbidden', 'loc': ['body',       
+'messages', 2, 'assistant', 'provider_specific_fields'], 'msg': 'Extra inputs   
+are not permitted', 'input': {'refusal': None}}]}                               
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/openai/openai.py:817 in completion                                 │
+│                                                                              │
+│    814 │   │   │   │   │   │   │   e, inference_params                       │
+│    815 │   │   │   │   │   │   )                                             │
+│    816 │   │   │   │   │   else:                                             │
+│ ❱  817 │   │   │   │   │   │   raise e                                       │
+│    818 │   │   │   │   │   # e.message                                       │
+│    819 │   │   │   │   except Exception as e:                                │
+│    820 │   │   │   │   │   if print_verbose is not None:                     │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/openai/openai.py:780 in completion                                 │
+│                                                                              │
+│    777 │   │   │   │   │   │   (                                             │
+│    778 │   │   │   │   │   │   │   headers,                                  │
+│    779 │   │   │   │   │   │   │   response,                                 │
+│ ❱  780 │   │   │   │   │   │   ) = self.make_sync_openai_chat_completion_req │
+│    781 │   │   │   │   │   │   │   openai_client=openai_client,              │
+│    782 │   │   │   │   │   │   │   data=data,                                │
+│    783 │   │   │   │   │   │   │   timeout=timeout,                          │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/litellm_core_utils/logging_utils.py:344 in sync_wrapper                 │
+│                                                                              │
+│   341 │   │   │   parent_otel_span = _get_parent_otel_span_from_logging_obj( │
+│   342 │   │   │                                                              │
+│   343 │   │   │   try:                                                       │
+│ ❱ 344 │   │   │   │   result = func(*args, **kwargs)                         │
+│   345 │   │   │   │   return result                                          │
+│   346 │   │   │   finally:                                                   │
+│   347 │   │   │   │   end_time = datetime.now()                              │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/openai/openai.py:503 in make_sync_openai_chat_completion_request   │
+│                                                                              │
+│    500 │   │   │   │   │   )                                                 │
+│    501 │   │   │   │   )                                                     │
+│    502 │   │   │   else:                                                     │
+│ ❱  503 │   │   │   │   raise e                                               │
+│    504 │                                                                     │
+│    505 │   async def _call_agentic_completion_hooks_openai(                  │
+│    506 │   │   self,                                                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/openai/openai.py:478 in make_sync_openai_chat_completion_request   │
+│                                                                              │
+│    475 │   │   """                                                           │
+│    476 │   │   raw_response = None                                           │
+│    477 │   │   try:                                                          │
+│ ❱  478 │   │   │   raw_response = openai_client.chat.completions.with_raw_re │
+│    479 │   │   │   │   **data, timeout=timeout                               │
+│    480 │   │   │   )                                                         │
+│    481                                                                       │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/ope │
+│ nai/_legacy_response.py:367 in wrapped                                       │
+│                                                                              │
+│   364 │   │                                                                  │
+│   365 │   │   kwargs["extra_headers"] = extra_headers                        │
+│   366 │   │                                                                  │
+│ ❱ 367 │   │   return cast(LegacyAPIResponse[R], func(*args, **kwargs))       │
+│   368 │                                                                      │
+│   369 │   return wrapped                                                     │
+│   370                                                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/ope │
+│ nai/_utils/_utils.py:298 in wrapper                                          │
+│                                                                              │
+│   295 │   │   │   │   │   else:                                              │
+│   296 │   │   │   │   │   │   msg = f"Missing required argument: {quote(miss │
+│   297 │   │   │   │   raise TypeError(msg)                                   │
+│ ❱ 298 │   │   │   return func(*args, **kwargs)                               │
+│   299 │   │                                                                  │
+│   300 │   │   return wrapper  # type: ignore                                 │
+│   301                                                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/ope │
+│ nai/resources/chat/completions/completions.py:1281 in create                 │
+│                                                                              │
+│   1278 │   │   timeout: float | httpx.Timeout | None | NotGiven = not_given, │
+│   1279 │   ) -> ChatCompletion | Stream[ChatCompletionChunk]:                │
+│   1280 │   │   validate_response_format(response_format)                     │
+│ ❱ 1281 │   │   return self._post(                                            │
+│   1282 │   │   │   "/chat/completions",                                      │
+│   1283 │   │   │   body=maybe_transform(                                     │
+│   1284 │   │   │   │   {                                                     │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/ope │
+│ nai/_base_client.py:1332 in post                                             │
+│                                                                              │
+│   1329 │   │   opts = FinalRequestOptions.construct(                         │
+│   1330 │   │   │   method="post", url=path, json_data=body, content=content, │
+│   1331 │   │   )                                                             │
+│ ❱ 1332 │   │   return cast(ResponseT, self.request(cast_to, opts, stream=str │
+│   1333 │                                                                     │
+│   1334 │   def patch(                                                        │
+│   1335 │   │   self,                                                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/ope │
+│ nai/_base_client.py:1105 in request                                          │
+│                                                                              │
+│   1102 │   │   │   │   │   err.response.read()                               │
+│   1103 │   │   │   │                                                         │
+│   1104 │   │   │   │   log.debug("Re-raising status error")                  │
+│ ❱ 1105 │   │   │   │   raise self._make_status_error_from_response(err.respo │
+│   1106 │   │   │                                                             │
+│   1107 │   │   │   break                                                     │
+│   1108                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯
+UnprocessableEntityError: Error code: 422 - {'detail': [{'type': 
+'extra_forbidden', 'loc': ['body', 'messages', 2, 'assistant', 
+'provider_specific_fields'], 'msg': 'Extra inputs are not permitted', 'input': 
+{'refusal': None}}]}
+
+During handling of the above exception, another exception occurred:
+
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/main.py:2781 in completion                                              │
+│                                                                              │
+│   2778 │   │   │   │   │   original_response=str(e),                         │
+│   2779 │   │   │   │   │   additional_args={"headers": headers},             │
+│   2780 │   │   │   │   )                                                     │
+│ ❱ 2781 │   │   │   │   raise e                                               │
+│   2782 │   │   │                                                             │
+│   2783 │   │   │   if optional_params.get("stream", False):                  │
+│   2784 │   │   │   │   ## LOGGING                                            │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/main.py:2753 in completion                                              │
+│                                                                              │
+│   2750 │   │   │   │   │   │   provider_config=provider_config,              │
+│   2751 │   │   │   │   │   )                                                 │
+│   2752 │   │   │   │   else:                                                 │
+│ ❱ 2753 │   │   │   │   │   response = openai_chat_completions.completion(    │
+│   2754 │   │   │   │   │   │   model=model,                                  │
+│   2755 │   │   │   │   │   │   messages=messages,                            │
+│   2756 │   │   │   │   │   │   headers=headers,                              │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/llms/openai/openai.py:863 in completion                                 │
+│                                                                              │
+│    860 │   │   │   error_body = getattr(e, "body", None)                     │
+│    861 │   │   │   if error_headers is None and error_response:              │
+│    862 │   │   │   │   error_headers = getattr(error_response, "headers", No │
+│ ❱  863 │   │   │   raise OpenAIError(                                        │
+│    864 │   │   │   │   status_code=status_code,                              │
+│    865 │   │   │   │   message=error_text,                                   │
+│    866 │   │   │   │   headers=error_headers,                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+OpenAIError: Error code: 422 - {'detail': [{'type': 'extra_forbidden', 'loc': 
+['body', 'messages', 2, 'assistant', 'provider_specific_fields'], 'msg': 'Extra 
+inputs are not permitted', 'input': {'refusal': None}}]}
+
+During handling of the above exception, another exception occurred:
+
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/main.py:412 in ask                                                       │
+│                                                                              │
+│    409 │   │   │   f'holmes ask "{prompt}"', span_type=SpanType.TASK         │
+│    410 │   │   ) as trace_span:                                              │
+│    411 │   │   │   trace_span.log(input=prompt, metadata={"type": "user_ques │
+│ ❱  412 │   │   │   response = ai.call(messages, trace_span=trace_span, reque │
+│    413 │   │   │   trace_span.log(                                           │
+│    414 │   │   │   │   output=response.result,                               │
+│    415 │   │   │   )                                                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/sen │
+│ try_sdk/tracing_utils.py:1106 in sync_wrapper                                │
+│                                                                              │
+│   1103 │   │   │   │   │   "Please start a Sentry transaction before calling │
+│   1104 │   │   │   │   │   qualname_from_function(f),                        │
+│   1105 │   │   │   │   )                                                     │
+│ ❱ 1106 │   │   │   │   return f(*args, **kwargs)                             │
+│   1107 │   │   │                                                             │
+│   1108 │   │   │   if isinstance(current_span, StreamedSpan):                │
+│   1109 │   │   │   │   warnings.warn(                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/tool_calling_llm.py:612 in call                                     │
+│                                                                              │
+│    609 │   │   │   start_tool_count = 0                                      │
+│    610 │   │   │   saw_tool_results = False                                  │
+│    611 │   │   │                                                             │
+│ ❱  612 │   │   │   for event in stream:                                      │
+│    613 │   │   │   │   # Log blank line when a tool batch ends (transition a │
+│    614 │   │   │   │   if saw_tool_results and event.event != StreamEvents.T │
+│    615 │   │   │   │   │   display_logger.info("")                           │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/tool_calling_llm.py:1163 in call_stream                             │
+│                                                                              │
+│   1160 │   │   │   with trace_span.start_span(name="gen_ai.chat") as llm_spa │
+│   1161 │   │   │     try:                                                    │
+│   1162 │   │   │   │   _llm_call_start = time.time()                         │
+│ ❱ 1163 │   │   │   │   full_response = self.llm.completion(                  │
+│   1164 │   │   │   │   │   messages=parse_messages_tags(messages),  # type:  │
+│   1165 │   │   │   │   │   tools=tools,                                      │
+│   1166 │   │   │   │   │   tool_choice=tool_choice,                          │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/hol │
+│ mes/core/llm.py:755 in completion                                            │
+│                                                                              │
+│    752 │   │   │   │   }                                                     │
+│    753 │   │   │   ]                                                         │
+│    754 │   │                                                                 │
+│ ❱  755 │   │   result = litellm_to_use.completion(                           │
+│    756 │   │   │   model=litellm_model_name,                                 │
+│    757 │   │   │   api_key=self.api_key,                                     │
+│    758 │   │   │   base_url=self.api_base,                                   │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/utils.py:1775 in wrapper                                                │
+│                                                                              │
+│   1772 │   │   │   │   logging_obj.failure_handler(                          │
+│   1773 │   │   │   │   │   e, traceback_exception, start_time, end_time      │
+│   1774 │   │   │   │   )  # DO NOT MAKE THREADED - router retry fallback rel │
+│ ❱ 1775 │   │   │   raise e                                                   │
+│   1776 │                                                                     │
+│   1777 │   @wraps(original_function)                                         │
+│   1778 │   async def wrapper_async(*args, **kwargs):  # noqa: PLR0915        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/utils.py:1596 in wrapper                                                │
+│                                                                              │
+│   1593 │   │   │   │   except Exception as e:                                │
+│   1594 │   │   │   │   │   print_verbose(f"Error while checking max token li │
+│   1595 │   │   │   # MODEL CALL                                              │
+│ ❱ 1596 │   │   │   result = original_function(*args, **kwargs)               │
+│   1597 │   │   │   end_time = datetime.datetime.now()                        │
+│   1598 │   │   │   if _is_streaming_request(                                 │
+│   1599 │   │   │   │   kwargs=kwargs,                                        │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/main.py:4614 in completion                                              │
+│                                                                              │
+│   4611 │   │   return response                                               │
+│   4612 │   except Exception as e:                                            │
+│   4613 │   │   ## Map to OpenAI Exception                                    │
+│ ❱ 4614 │   │   raise exception_type(                                         │
+│   4615 │   │   │   model=model,                                              │
+│   4616 │   │   │   custom_llm_provider=custom_llm_provider,                  │
+│   4617 │   │   │   original_exception=e,                                     │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/litellm_core_utils/exception_mapping_utils.py:2473 in exception_type    │
+│                                                                              │
+│   2470 │   │   # don't let an error with mapping interrupt the user from rec │
+│   2471 │   │   if exception_mapping_worked:                                  │
+│   2472 │   │   │   setattr(e, "litellm_response_headers", litellm_response_h │
+│ ❱ 2473 │   │   │   raise e                                                   │
+│   2474 │   │   else:                                                         │
+│   2475 │   │   │   for error_type in litellm.LITELLM_EXCEPTION_TYPES:        │
+│   2476 │   │   │   │   if isinstance(e, error_type):                         │
+│                                                                              │
+│ /Users/kadirhan/.local/pipx/venvs/holmesgpt/lib/python3.14/site-packages/lit │
+│ ellm/litellm_core_utils/exception_mapping_utils.py:579 in exception_type     │
+│                                                                              │
+│    576 │   │   │   │   │   │   )                                             │
+│    577 │   │   │   │   │   elif original_exception.status_code == 422:       │
+│    578 │   │   │   │   │   │   exception_mapping_worked = True               │
+│ ❱  579 │   │   │   │   │   │   raise BadRequestError(                        │
+│    580 │   │   │   │   │   │   │   message=f"{exception_provider} - {message │
+│    581 │   │   │   │   │   │   │   model=model,                              │
+│    582 │   │   │   │   │   │   │   llm_provider=custom_llm_provider,         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+BadRequestError: litellm.BadRequestError: OpenAIException - Error code: 422 - 
+{'detail': [{'type': 'extra_forbidden', 'loc': ['body', 'messages', 2, 
+'assistant', 'provider_specific_fields'], 'msg': 'Extra inputs are not 
+permitted', 'input': {'refusal': None}}]}
+
+# tool_wall_seconds: 62
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

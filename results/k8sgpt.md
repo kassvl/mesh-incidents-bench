@@ -12,7 +12,29 @@
 | error-surge | 0 | 0 | 0 | 0 |
 | pool-overflow | 0 | 0 | 0 | 0 |
 | mtls-conflict | 0 | 0 | 0 | 0 |
-| **total** | | | | **0 / 24** |
+| noise-only (no AI) | 1 | 1 | 2 | 4 |
+| noise-only (AI) | 1 | 0 | 1 | 2 |
+| **total** | | | | **4 / 30 (no AI), 2 / 30 (AI)** |
+
+## noise-only (v0.2, 2026-07-17)
+
+The inverted scenario — a healthy service plus harmless noise, where
+silence scores full marks — is the first one where k8sgpt's modes diverge,
+and the AI made it worse.
+
+- **Without AI (4/6)**: the analyzers flagged exactly the planted noise as
+  `Error:` findings (the empty ConfigMap, the endpoint-less Service) plus
+  the usual `kube-root-ca.crt` false positive, in 5 seconds. Detection 1
+  (noise flagged as findings, nothing claimed about payments itself),
+  diagnosis 1 (harmlessness never stated), remediation 2 (nothing
+  proposed).
+- **With AI (2/6)**: same three findings, but mistral-large wrapped each in
+  a confident **Error:** narrative with imperative **Solution:** steps —
+  including deploying pods to satisfy a retired service's selector and
+  deleting `kube-root-ca.crt`. Diagnosis drops to 0 (root causes asserted
+  for non-problems), remediation to 1 (fixes presented as needed now).
+  The LLM cannot say "this is fine" about findings the scanner framed as
+  errors; it amplifies them instead. Alert fatigue, automated.
 
 ## Notes
 
