@@ -35,8 +35,20 @@ production, cheap injection on the existing testbed, and a signal class the
 
 ## Tier 2 - validate after tier 1 (clean but adjacent, or needs a small evidence add)
 
-- **subset-selector-zero-endpoints** (traffic): UH flag, adjacent to
-  `upstream-host-ejection-flood`; distinct root cause (label mismatch).
+- ~~**subset-selector-zero-endpoints** (traffic)~~. Validated: the UH signal
+  is already caught by `upstream-host-ejection-flood`, so it is not a new
+  detection class. But the finding was worth the run: a broken subset
+  selector and an ejection flood produce the identical UH flag with different
+  fixes, and the existing entry's ejection patch is wrong for a selector
+  mismatch. Resolved by enriching `upstream-host-ejection-flood` with
+  DestinationRule object evidence (subsets + outlier policy) so a reviewer
+  can tell the two apart, rather than adding a redundant entry. Two side
+  findings: at a single broken subset (20% of traffic) the UH rate (~0.48
+  rps) sits below the entry's threshold of 1, so only a full-service selector
+  break fires it; and the entry's original `ejected-hosts` / `ready-endpoints`
+  evidence uses `envoy_cluster_*` / kube-state metrics the stock addon does
+  not scrape, so the kubectl-based object evidence is the part that actually
+  resolves on this testbed.
 - **fault-injection-left-in-production** (traffic): a forgotten
   fault-injection VirtualService; clean `response_flags` signal.
 - **ztunnel-node-crashloop-blackhole** (ambient): the one clean "yes" in the
