@@ -9,7 +9,13 @@ mTLS modes. This benchmark makes that measurable. Every scenario is a real
 fault injected into a real Istio ambient mesh, with a documented root cause
 and the remediation an experienced mesh operator would apply.
 
-## Scenarios (v0.2)
+## Scenarios
+
+Eleven scenarios today. The six below carry the scored leaderboard; the five
+added since (`authz-deny-flood`, `client-wrong-port`, `client-wrong-scheme`,
+`fault-injection-left`, `route-timeout-too-short`) are validated on the testbed
+for MeshMedic but not yet run against the other tools, so they are not scored
+below. Reruns of the other tools on the newer scenarios are welcome as PRs.
 
 | id | fault | mesh-native remediation |
 | --- | --- | --- |
@@ -27,7 +33,7 @@ discipline, the alert-fatigue failure mode the fault scenarios cannot see.
 emits a pathological mesh signal that a catalog of threshold detectors can
 match; this one is a real, total outage (100% of user-facing calls fail) that
 shows up only as the *absence* of telemetry, one layer above the mesh in a
-client's own config. When first run, every tool scored 0 here — including
+client's own config. When first run, every tool scored 0 here - including
 MeshMedic, as the scenario predicted for catalog-based detectors. That
 prediction had a loophole: absence *is* detectable deterministically
 (`or vector(0)` plus a `max_over_time` baseline), and once a detector
@@ -66,13 +72,13 @@ the author's tool does poorly on, is the best fix for that bias; see
 | k8sgpt (AI, mistral-large) | 0 | 0 | 0 | 0 | 2 | 0 | **2 / 36** |
 
 ‡ client-dns-typo was designed as the breadth-honesty control where
-catalog tools are *expected* to score 0 — and MeshMedic's first run did
+catalog tools are *expected* to score 0 - and MeshMedic's first run did
 score 0, as recorded in `raw/`. The 6 comes from the v0.3 deterministic
 triage layer (absence signal + log-signature sweep + rollout template
 diff) built *in response to* this scenario: the dossier names the failing
 host from the client's logs and shows the exact bad line in the rollout
 diff. Developed after studying the scenario, like everything else in the
-home game — but the mechanism generalizes to any bad client deploy, and
+home game - but the mechanism generalizes to any bad client deploy, and
 live verification caught two real bugs (Kubernetes ReplicaSet reuse
 defeating age-based rollout detection; a fixed-offset baseline going
 blind inside back-to-back outages) that are now regression-tested.
@@ -145,6 +151,22 @@ is worth knowing about before you page it.
   cost axis of how much a diagnostic tool mutates the cluster while it
   investigates, how the harness measures it, and why MeshMedic's zero is a
   design guarantee while an agent's is per-run.
+- [docs/taxonomy/response-flags-coverage.md](docs/taxonomy/response-flags-coverage.md):
+  Envoy's full response-flag vocabulary mapped against what the tool covers,
+  so the failure taxonomy is grounded in the mesh's own signals rather than
+  imagination. The `docs/taxonomy/` directory holds the candidate failure
+  classes and the validation queue that feed new scenarios.
+
+## Status and goals
+
+Six scenarios are scored on the leaderboard; five more are validated for
+MeshMedic and awaiting reruns of the other tools. The honest limit of the
+leaderboard is that its author also wrote the tool, so the next priority is
+credibility: scenarios authored independently of MeshMedic (reproductions of
+HolmesGPT's own DNS and network fixtures, and real Istio incidents from public
+sources) and, budget permitting, a frontier-model HolmesGPT run so the
+comparison is not against a handicapped opponent. Contributions on both fronts
+are the point of the repository, not an afterthought.
 
 ## License
 
