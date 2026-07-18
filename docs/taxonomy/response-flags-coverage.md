@@ -20,6 +20,7 @@ telemetry (some need infrastructure the single-service ambient testbed lacks).
 | `UO` | Upstream overflow (circuit breaking) | pool-overflow |
 | `UT` | Upstream request timeout | route-timeout-too-short |
 | `FI` | Fault injected | fault-injection-left-in-production |
+| `NR` | No route found | no-route-blackhole (source-keyed: NR carries `destination_service_name=unknown`, so the signal keys on `source_workload_namespace`, confirmed live) |
 
 ## Gap, prioritized for validation
 
@@ -28,7 +29,7 @@ inject them cleanly.
 
 | flag | meaning | failure class | inject on testbed? | priority |
 | --- | --- | --- | --- | --- |
-| `NR` | No route found | missing/broken VirtualService route, wrong Host | yes: misconfigure or remove the VS route | high |
+| `NR` | No route found | ~~missing/broken VirtualService route~~ | **validated and merged** as `no-route-blackhole` (source-keyed) | done |
 | `DF` | DNS resolution failed | proxy-side DNS failure to a destination | yes: point a ServiceEntry/host at an unresolvable name | high (also the mesh-native counterpart to the client-side `client-dns-typo`, and to Holmes's own DNS fixtures) |
 | `UF` | Upstream connection failure | backend unreachable at the connection layer | yes: wrong port / backend down | high (overlaps client-wrong-port triage; UF is the telemetry-native signal) |
 | `UC` | Upstream connection termination | backend closed the connection mid-request | yes: crash/kill the backend under load | medium |
