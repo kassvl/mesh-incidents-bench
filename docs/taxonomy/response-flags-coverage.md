@@ -1,0 +1,60 @@
+# Response-flag coverage map
+
+The mesh failure vocabulary is public and finite: Envoy stamps every request
+with a `response_flags` code, and Istio surfaces it on `istio_requests_total`.
+Harvesting that vocabulary and mapping it against the catalog gives a grounded,
+non-imaginary picture of what MeshMedic covers and where the gaps are.
+
+Source: Envoy access-log RESPONSE_FLAGS reference (substitution formatter docs,
+read 2026-07-18). The list below is the documented vocabulary; a flag becomes a
+catalog entry only after it is injected on the testbed and the signal observed,
+because a flag existing in the spec does not mean it appears on this testbed's
+telemetry (some need infrastructure the single-service ambient testbed lacks).
+
+## Covered (validated live)
+
+| flag | meaning | catalog entry |
+| --- | --- | --- |
+| `DENY` | RBAC/authorization denial | mtls-policy-conflict-ambient, authz-deny-flood |
+| `UH` | No healthy upstream | upstream-host-ejection-flood, subset-selector (enriched) |
+| `UO` | Upstream overflow (circuit breaking) | pool-overflow |
+| `UT` | Upstream request timeout | route-timeout-too-short |
+| `FI` | Fault injected | fault-injection-left-in-production |
+
+## Gap, prioritized for validation
+
+Ranked by incident frequency and whether the single-service ambient testbed can
+inject them cleanly.
+
+| flag | meaning | failure class | inject on testbed? | priority |
+| --- | --- | --- | --- | --- |
+| `NR` | No route found | missing/broken VirtualService route, wrong Host | yes: misconfigure or remove the VS route | high |
+| `DF` | DNS resolution failed | proxy-side DNS failure to a destination | yes: point a ServiceEntry/host at an unresolvable name | high (also the mesh-native counterpart to the client-side `client-dns-typo`, and to Holmes's own DNS fixtures) |
+| `UF` | Upstream connection failure | backend unreachable at the connection layer | yes: wrong port / backend down | high (overlaps client-wrong-port triage; UF is the telemetry-native signal) |
+| `UC` | Upstream connection termination | backend closed the connection mid-request | yes: crash/kill the backend under load | medium |
+| `UR` | Upstream remote reset | backend sent a TCP reset | yes: backend closes abruptly | medium |
+| `URX` | Upstream retry limit exceeded | retries exhausted against a flaky backend | yes: retry policy + intermittent 5xx | medium |
+| `UPE` | Upstream protocol error | protocol mismatch (h2/h1, TLS) | partial: overlaps client-wrong-scheme | medium |
+| `SI` | Stream idle timeout | idle stream cut by the proxy | yes-ish: slow/stalled backend | low |
+| `DT` | Duration timeout | request exceeded max stream duration | yes-ish: max-duration policy + slow backend | low |
+
+## Deferred - need infrastructure the testbed lacks
+
+| flag | why deferred |
+| --- | --- |
+| `RL`, `RLSE` | need a rate-limit filter / ratelimit service configured |
+| `UAEX` | needs an external authorization service |
+| `OM`, `DO`, `UDO` | need the overload manager / load-shedding under real memory pressure |
+| `LH` | needs active health checking configured on the cluster |
+| `NC` | cluster-not-found is usually a config-load error, not a runtime traffic signal |
+| `IH`, `DPE`, `DC`, `LR`, `DR` | downstream/client-side or header-level; low mesh-diagnosis value on this testbed |
+
+## How this feeds the pipeline
+
+`NR`, `DF`, and the `UF`/`UC`/`UR` connection-failure family are the high-value
+gap: common real failures with a clean telemetry signal. They go through the
+same gate as every entry - inject on the testbed, observe the real flag and
+labels, only then a catalog entry or bench scenario. `DF` is worth doing first:
+it is both a coverage gap and the mesh-native signal for the DNS-failure class
+that Holmes's own fixtures test, so validating it also sets up the independent
+comparison.
