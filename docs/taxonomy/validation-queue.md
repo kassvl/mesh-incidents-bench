@@ -15,10 +15,13 @@ production, cheap injection on the existing testbed, and a signal class the
    Common Istio authoring gotcha, one `kubectl apply` to inject. Highest
    value because it extends the catalog into a resource type it does not yet
    touch.
-2. **oom-kill-resource-limit** (client). `OOMKilled` + exit code 137 is
-   unambiguous object evidence; extremely common in production. Injected by
-   lowering `payments-v2` memory limit. Exercises the triage object-evidence
-   path with a new signature and a rollout-diff root cause.
+2. ~~**oom-kill-resource-limit** (client)~~. Moved to Deferred on
+   validation. `OOMKilled` is object evidence, not a Prometheus signal, and
+   the testbed's Prometheus (the stock Istio addon) does not scrape
+   kube-state-metrics, so there is no `kube_pod_container_status_last_terminated_reason`
+   series to trigger a scenario on. MeshMedic triggers scenarios on PromQL;
+   a pod-status-only class needs kube-state-metrics added to the testbed
+   first. Real finding, exactly what testbed validation is for.
 3. **route-timeout-shorter-than-backend** (traffic). A route timeout below
    real backend latency floods `response_flags="UT"`, a clean mesh signal no
    current entry uses. Inject a VirtualService timeout under the payments
@@ -58,6 +61,12 @@ validation until the testbed grows:
 
 - **networkpolicy-new-deny** (client): the testbed CNI is kindnet, which
   does not enforce NetworkPolicy. Needs a Calico/Cilium testbed.
+- **oom-kill-resource-limit**, **image-tag-bad-rollout**,
+  **readiness-probe-misconfig**, **configmap-secret-startup-break** (client):
+  all pod-status classes whose signal is kube-state-metrics, which the stock
+  Istio Prometheus addon does not scrape. Adding kube-state-metrics to the
+  testbed would move this whole group into scope at once; a good testbed
+  enhancement, out of scope for the current addon-only Prometheus.
 - **multicluster-trust-domain-mismatch** (security): needs a second cluster.
 - **destinationrule-loadbalancer-hotspot** (traffic): needs a load profile
   the single-node testbed cannot produce.
