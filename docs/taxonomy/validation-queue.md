@@ -100,19 +100,27 @@ they can be validated on the current single-service ambient testbed.
 
 ### Tier 3a - validatable now (cheap, mostly triage generalizations)
 
-1. **client-wrong-scheme** (client): loadgen calls `https://` an http-only
-   service; the handshake fails, traffic vanishes, caught by the traffic-
-   vanished triage via the absence signal, a TLS/handshake log line, and the
-   rollout diff. Same mechanism as client-wrong-port, different signature.
-2. **client-wrong-namespace-qualified-name** (client): loadgen calls
-   `payments.wrong-ns`; the name does not resolve (or resolves to nothing),
-   traffic vanishes, caught by the triage NXDOMAIN path already validated in
-   client-dns-typo. Likely already covered; validate to confirm and add the
-   scenario if the signature differs.
-3. **authz-deny-rule-too-broad** (security): a DENY rule broader than
-   intended. Expected to produce the same 403 signal as authz-deny-flood
-   (already merged); validate to confirm it is subsumed rather than a new
-   class, like subset-selector was for UH.
+1. ~~**client-wrong-scheme** (client)~~. Validated and merged (scenario +
+   new TLS-error log patterns). loadgen speaking https to a plaintext port
+   fails with curl 35 (TLS connect error); the triage entry now fires with
+   the TLS-error signature and the http-to-https rollout diff. End-to-end
+   confirmed. Third distinct wrong-target signature (NXDOMAIN, empty reply,
+   TLS error).
+2. ~~**client-wrong-namespace-qualified-name** (client)~~. Confirmed subsumed
+   by client-dns-typo: `payments.wrong-ns` does not resolve, producing the
+   same NXDOMAIN "could not resolve" signature the triage entry already
+   catches. Same catalog entry, same patterns, same rollout-diff root cause;
+   no new scenario needed.
+3. ~~**authz-deny-rule-too-broad** (security)~~. Confirmed subsumed by
+   authz-deny-flood: a too-broad DENY produces the same `response_code=403`
+   flood at the waypoint that authz-deny-flood already fires on, and its
+   object evidence already lists every AuthorizationPolicy so the reviewer
+   sees which rule is over-broad. Same mechanism validated when authz-deny-flood
+   was injected; no new entry needed (the subset-selector pattern: same
+   signal, different narrative).
+
+Tier 3 is complete: 3a processed (one new scenario, two confirmed subsumed),
+3b deferred with documented findings below.
 
 ### Tier 3b - deferred on inspection (need infra the testbed lacks)
 
