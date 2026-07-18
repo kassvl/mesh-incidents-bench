@@ -27,11 +27,14 @@ discipline, the alert-fatigue failure mode the fault scenarios cannot see.
 emits a pathological mesh signal that a catalog of threshold detectors can
 match; this one is a real, total outage (100% of user-facing calls fail) that
 shows up only as the *absence* of telemetry, one layer above the mesh in a
-client's own config. Catalog-based tools, MeshMedic included, are expected to
-score 0 here by design — no query fires on traffic that has stopped — while an
-agentic investigator that reads the client's logs and Deployment spec can
-root-cause it. It keeps the leaderboard honest about what a mesh-native
-detector structurally cannot see.
+client's own config. When first run, every tool scored 0 here — including
+MeshMedic, as the scenario predicted for catalog-based detectors. That
+prediction had a loophole: absence *is* detectable deterministically
+(`or vector(0)` plus a `max_over_time` baseline), and once a detector
+knows traffic vanished, the client's own logs and the most recent rollout
+diff usually contain the root cause verbatim. MeshMedic's v0.3 triage
+layer does exactly that, and the scenario now measures which tools can see
+a disappearance as well as an appearance.
 
 Each scenario directory contains `inject.sh`, `check.sh` (exits 0 while the
 incident is live), `reset.sh`, and `ground-truth.md` with the root cause,
@@ -51,12 +54,24 @@ tool. See `results/`.
 
 ## Leaderboard (v0.2, 2026-07-17)
 
-| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | noise-only | total |
-| --- | --- | --- | --- | --- | --- | --- |
-| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 6 | 6 | 6 | 6 | **30 / 30** |
-| HolmesGPT (mistral-large) † | 6 | 5 | 0 | 0 | 3 | **14 / 30** |
-| k8sgpt (no AI) | 0 | 0 | 0 | 0 | 4 | **4 / 30** |
-| k8sgpt (AI, mistral-large) | 0 | 0 | 0 | 0 | 2 | **2 / 30** |
+| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | noise-only | client-dns-typo | total |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 6 | 6 | 6 | 6 | 6 ‡ | **36 / 36** |
+| HolmesGPT (mistral-large) † | 6 | 5 | 0 | 0 | 3 | 0 | **14 / 36** |
+| k8sgpt (no AI) | 0 | 0 | 0 | 0 | 4 | 0 | **4 / 36** |
+| k8sgpt (AI, mistral-large) | 0 | 0 | 0 | 0 | 2 | 0 | **2 / 36** |
+
+‡ client-dns-typo was designed as the breadth-honesty control where
+catalog tools are *expected* to score 0 — and MeshMedic's first run did
+score 0, as recorded in `raw/`. The 6 comes from the v0.3 deterministic
+triage layer (absence signal + log-signature sweep + rollout template
+diff) built *in response to* this scenario: the dossier names the failing
+host from the client's logs and shows the exact bad line in the rollout
+diff. Developed after studying the scenario, like everything else in the
+home game — but the mechanism generalizes to any bad client deploy, and
+live verification caught two real bugs (Kubernetes ReplicaSet reuse
+defeating age-based rollout detection; a fixed-offset baseline going
+blind inside back-to-back outages) that are now regression-tested.
 
 \* Same author as this benchmark, and the v0.2 MeshMedic changes were
 developed against these exact scenarios: a home game played after studying

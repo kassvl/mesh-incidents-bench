@@ -21,7 +21,8 @@ the honest fix for the bias.
 | pool-overflow | 2 | 2 | 2 | 6 |
 | mtls-conflict | 2 | 2 | 2 | 6 |
 | noise-only | 2 | 2 | 2 | 6 |
-| **total** | | | | **30 / 30** |
+| client-dns-typo (v0.3 triage) | 2 | 2 | 2 | 6 |
+| **total** | | | | **36 / 36** |
 
 Harness-measured, per run: tool wall time 120-210s (bounded by the watch
 window given to it, detection itself lands on the first 15s tick after the
@@ -65,3 +66,18 @@ every run.
   healthy, MeshMedic emitted nothing for the whole window. On this
   scenario's inverted rubric, silence is the correct answer: thresholds
   with hold durations do not chase noise.
+- **client-dns-typo** (v0.3 triage layer): the breadth-honesty control,
+  where MeshMedic first scored 0 as designed. The v0.3 triage layer now
+  fires `traffic-vanished-triage`: an absence signal (`or vector(0)` plus
+  a `max_over_time` 30m baseline) confirms traffic that flowed is now
+  gone, then the dossier attaches the log-signature sweep (loadgen's
+  `Could not resolve host: payments-svc.demo` from its own logs) and the
+  rollout diff (`- http://payments:9090/` → `+ http://payments-svc.demo:9090/`,
+  the bad line verbatim). No patch is proposed (report-only); the dossier
+  is the deliverable. Live verification of this layer caught two real
+  bugs now regression-tested: Kubernetes reuses an existing ReplicaSet on
+  rollback so ReplicaSet age lies about rollout time (fixed by reading the
+  Deployment's Progressing lastUpdateTime), and a fixed-offset baseline
+  goes blind inside back-to-back outages (fixed with max_over_time). A
+  regression run confirmed the triage scenario does not false-fire on
+  error-surge.
