@@ -118,6 +118,17 @@ zeros are still not a k8sgpt bug: its analyzers inspect object state, mesh
 incidents leave objects healthy, and an AI backend cannot explain what the
 scanner never sees ([results/k8sgpt.md](results/k8sgpt.md)).
 
+**Read the leaderboard as coverage, not a verdict on tool quality.** HolmesGPT
+and k8sgpt are general Kubernetes tools; neither targets the service mesh.
+HolmesGPT's own 266-fixture evaluation corpus contains zero Istio or mesh
+scenarios (audited 2026-07-19; the only "traffic" fixtures are CNI
+NetworkPolicy). So this benchmark tests these tools on a layer they do not
+aim at, which is why they score low here and MeshMedic scores high, and it is
+also why there is no fixture in Holmes's own suite on which MeshMedic could
+compete. The honest reading is not "MeshMedic is better than Holmes" but
+"MeshMedic covers the mesh-telemetry layer that general Kubernetes tools do
+not." They are complementary, not rivals.
+
 ## Testbed
 
 Scenarios run against the [MeshMedic demo environment](https://github.com/kassvl/meshmedic)
