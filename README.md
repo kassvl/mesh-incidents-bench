@@ -52,6 +52,10 @@ Scores are assigned by a human against the rubric in each `ground-truth.md`.
 Runs are honest: misses are published, including the benchmark author's own
 tool. See `results/`.
 
+The benchmark and MeshMedic share an author. A new scenario, especially one
+the author's tool does poorly on, is the best fix for that bias; see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Leaderboard (v0.2, 2026-07-17)
 
 | tool | canary-latency | error-surge | pool-overflow | mtls-conflict | noise-only | client-dns-typo | total |
