@@ -92,6 +92,52 @@ Tier 2 is complete: subset-selector and fault-injection validated (one
 enriched an existing entry, one became a new entry), the rest deferred with
 documented findings above.
 
+## Tier 3 - the remaining lower-priority partials
+
+The candidates not selected into Tier 1 or Tier 2: mostly partial-detection
+classes or ones needing infrastructure the testbed lacks. Split by whether
+they can be validated on the current single-service ambient testbed.
+
+### Tier 3a - validatable now (cheap, mostly triage generalizations)
+
+1. **client-wrong-scheme** (client): loadgen calls `https://` an http-only
+   service; the handshake fails, traffic vanishes, caught by the traffic-
+   vanished triage via the absence signal, a TLS/handshake log line, and the
+   rollout diff. Same mechanism as client-wrong-port, different signature.
+2. **client-wrong-namespace-qualified-name** (client): loadgen calls
+   `payments.wrong-ns`; the name does not resolve (or resolves to nothing),
+   traffic vanishes, caught by the triage NXDOMAIN path already validated in
+   client-dns-typo. Likely already covered; validate to confirm and add the
+   scenario if the signature differs.
+3. **authz-deny-rule-too-broad** (security): a DENY rule broader than
+   intended. Expected to produce the same 403 signal as authz-deny-flood
+   (already merged); validate to confirm it is subsumed rather than a new
+   class, like subset-selector was for UH.
+
+### Tier 3b - deferred on inspection (need infra the testbed lacks)
+
+- **ingress-gateway-host-binding-mismatch** (traffic): needs an ingress
+  Gateway; the testbed drives traffic from an in-cluster loadgen, no gateway.
+- **sidecar-egress-scope-blackhole** (traffic): a sidecar-mode fault; the
+  testbed is ambient (no sidecars).
+- **waypoint-binding-drops-l7-enforcement** (traffic),
+  **waypoint-pod-pending-unschedulable**, **ambient-cni-node-not-ready**,
+  **ztunnel-istiod-xds-disconnect-stale-config**,
+  **ztunnel-cert-renewal-premature-revocation** (ambient): pod-state or
+  control-plane signals needing kube-state-metrics or a multi-node cluster,
+  same gaps as the deferred groups below.
+- **peerauth-portlevel-override-conflict**, **workload-cert-ca-ttl-expiry**,
+  **custom-authz-extauthz-outage-coupling** (security): reuse existing
+  mTLS/authz signals or need an external authz service; distinct root cause
+  but no clean new signal to validate here.
+- **destinationrule-host-mismatch-silent-nogo**,
+  **virtualservice-weight-validation-gap** (traffic),
+  **authz-selector-typo-silent-mismatch** (security): "silent" classes whose
+  worst case has no telemetry at all (config accepted, traffic quietly
+  misrouted or a security hole opened); catchable only by config-lint object
+  evidence, not a runtime signal. Candidates for a future `istioctl analyze`
+  style static-check evidence type.
+
 ## Deferred - real classes, not injectable on this testbed
 
 Documented in the candidate files for the encyclopedia, but out of scope for
