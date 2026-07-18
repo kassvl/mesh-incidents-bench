@@ -1,21 +1,0 @@
-# scenario: client-dns-typo
-# tool: ./harness/run-k8sgpt-ai.sh
-# date: 2026-07-17T23:02:29Z
-
-W0718 01:02:30.262408   75023 warnings.go:70] v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
-   0% |                                                | (0/1, 0 it/hr) [0s:0s]                                                                                100% |███████████████████████████████████████████████| (1/1, 102 it/s)
-AI Provider: openai
-
-0: ConfigMap demo/kube-root-ca.crt()
-- Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace
-**Error:** The `kube-root-ca.crt` ConfigMap exists in your namespace but isn’t mounted or referenced by any pods.
-
-**Solution:**
-1. **Check usage:** `kubectl get pods -o yaml | grep -A5 "volumes:"` to verify mounts.
-2. **Delete if unused:** `kubectl delete configmap kube-root-ca.crt` (safe if no pods depend on it).
-3. **Recreate if needed:** Kubernetes auto-generates it when a pod requests CA certs.
-
-
-# tool_wall_seconds: 4
-# cluster_objects_created_during_run: 0
-# cluster_objects_deleted_during_run: 0

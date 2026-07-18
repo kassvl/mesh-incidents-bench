@@ -1,0 +1,91 @@
+# scenario: route-timeout-too-short
+# tool: /Users/kadirhan/meshmedic/meshmedic watch --config /Users/kadirhan/mesh-incidents-bench/harness/meshmedic-watch.yaml --catalog /Users/kadirhan/meshmedic/catalog
+# date: 2026-07-18T01:53:51Z
+
+meshmedic: 2026/07/18 03:53:51 watching 11 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+## Incident: Route timeout shorter than backend latency
+
+Scenario `route-timeout-too-short` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **3.374** (threshold > 0.5 for 60s) since 2026-07-18T01:53:51Z.
+
+### Diagnosis
+
+A VirtualService route timeout is shorter than the backend's real response time, so requests are cut off and returned as HTTP 504 with the UT (upstream request timeout) response flag while the backend is actually healthy and would have answered. The fix is to raise the route timeout above the backend's p99, or remove it, on the specific VirtualService. No patch is proposed automatically: the correct timeout depends on the service's real latency, and regenerating the VirtualService without the operator's existing routes and weights would risk replacing a considered routing table with an improvised one. Instead this entry pins the offending field: the VirtualService and its current timeout, next to the measured backend latency, so the operator can set the right value.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| timed-out-rate | 1.305 |
+| backend-p99-latency-ms | 43.55 |
+
+### Configuration evidence
+
+- virtualservice-timeouts (`VirtualService demo/payments`) `spec.http[*].route`: `[{"destination":{"host":"payments","subset":"v1"},"weight":80},{"destination":{"host":"payments","subset":"v2"},"weight":20}]`
+- virtualservice-timeouts (`VirtualService demo/payments`) `spec.http[*].timeout`: `0.01s`
+
+### Proposed patch (VirtualService)
+
+```yaml
+# report-only scenario: no patch is proposed.
+# The evidence above is the deliverable; act on it by hand.
+```
+
+### Rollback
+
+Not applicable: nothing is applied. Raise the route timeout on the named VirtualService above the backend-p99-latency-ms shown in the evidence, or remove it to fall back to the mesh default, preserving the existing routes and weights. If the backend latency itself is the real problem, the timeout is doing its job and the fix belongs in the backend, not the route.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+## Incident: Sustained 5xx surge from a service
+
+Scenario `error-surge-outlier-ejection` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **1** (threshold > 0.15 for 120s) since 2026-07-18T01:53:51Z.
+
+### Diagnosis
+
+A service's 5xx ratio holds above 15 percent. When the errors come from a subset of bad endpoints (bad node, wedged pod), ejecting unhealthy hosts from the load balancing pool restores service without touching the workload. Outlier detection does that automatically once configured.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| errors-by-workload{destination_workload="payments-v1"} | 3.562 |
+| errors-by-workload{destination_workload="payments-v2"} | 0.8858 |
+| requests-by-workload{destination_workload="payments-v1"} | 3.562 |
+| requests-by-workload{destination_workload="payments-v2"} | 0.8858 |
+
+### Configuration evidence
+
+- suspect-workload-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].env`: `NAME=payments-v2 MESSAGE=ok TIMING_50_PERCENTILE=20ms`
+
+### Proposed patch (DestinationRule)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payments-outlier
+  namespace: demo
+spec:
+  host: payments
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 50
+```
+
+### Rollback
+
+If the 5xx ratio does not drop after ejection, the failure is uniform across endpoints (bad deploy, downstream dependency) and this patch is not the fix; revert it and check the canary-latency-rollback and upstream dependencies. maxEjectionPercent 50 caps the blast radius either way.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+
+# tool_wall_seconds: 150
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

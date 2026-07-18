@@ -62,8 +62,7 @@ step by step before any catalog entry.
   not exist in ambient. Honest open question.
 - **Overlaps existing catalog?**: extends `client-dns-typo` / traffic-vanished
   triage. Only becomes a new entry if a distinct mesh signal is confirmed.
-- **Sources**: Envoy RESPONSE_FLAGS (`DF` = DNS resolution failed); HolmesGPT
-  fixtures `42_dns_issues_*` (their own DNS-failure test family).
+- **Sources**: Envoy RESPONSE_FLAGS (`DF` = DNS resolution failed); public DNS-failure incident reports  (a common client-DNS failure class).
 
 ## upstream-connection-failure-family
 

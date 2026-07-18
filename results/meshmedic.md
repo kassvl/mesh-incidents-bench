@@ -34,14 +34,13 @@ every run.
 - **canary-latency**: fired `canary-latency-rollback` (p99 2482ms vs
   1000ms), proposed the VirtualService shift to stable. New in v0.2: the
   report's configuration evidence reads the canary Deployment and shows
-  `TIMING_50_PERCENTILE=1200ms` — the injected root cause — next to the
-  stable subset's 48ms comparison. That config-level depth was previously
-  HolmesGPT's unique advantage, found by a nine-minute LLM investigation;
-  it is now a deterministic kubectl read.
+  `TIMING_50_PERCENTILE=1200ms` - the injected root cause - next to the
+  stable subset's 48ms comparison. That config-level depth is a deterministic
+  kubectl read, next to the metric symptom, delivered in seconds.
 - **error-surge**: fired `error-surge-outlier-ejection` (ratio 0.218 vs
   0.15). The v0.1 gap is closed: evidence queries keep their labels, so the
   report shows `errors-by-workload{destination_workload="payments-v2"}` at
-  0.93 rps with v1 absent from the error rows — the 500s are named to the
+  0.93 rps with v1 absent from the error rows - the 500s are named to the
   v2 subset, and the configuration evidence shows `ERROR_RATE=0.9
   ERROR_CODE=500` on that Deployment. Diagnosis 1 → 2.
 - **pool-overflow**: fired `connection-pool-overflow` (13.65 UO rps) once.
@@ -55,7 +54,7 @@ every run.
   included, is now detected at full marks. The new
   `mtls-policy-conflict-ambient` entry watches ztunnel's L4 telemetry:
   `istio_tcp_connections_closed_total{response_flags="DENY"}`. The report
-  names the denied client (`plain-client`, `source_principal="unknown"` —
+  names the denied client (`plain-client`, `source_principal="unknown"`  - 
   no mesh identity), lists the namespace's PeerAuthentication policies
   (`demo-strict`, mode STRICT) as configuration evidence, and proposes the
   scoped PERMISSIVE fallback with an enroll-the-client rollback. The

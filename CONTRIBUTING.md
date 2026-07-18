@@ -7,8 +7,9 @@ an author; that is a bias, disclosed on every results page. Outside
 scenarios are the honest fix for it. A scenario that MeshMedic scores poorly
 on is a good scenario.
 
-Reruns of the other tools are equally welcome, particularly HolmesGPT with a
-better-provisioned or frontier model, which the current runs could not use.
+The most valuable contribution is a scenario drawn from a real Istio incident
+you hit, a public postmortem, or an Istio GitHub issue, authored by someone who
+did not build the tool being scored. That is what breaks the home game.
 
 ## What a scenario is
 

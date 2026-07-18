@@ -202,9 +202,10 @@ Istio 1.24 ambient, matching the existing scenarios.
 - **Overlaps existing catalog?**: new - closest relative is
   `traffic-vanished-triage` (same absence signal, two already-covered log
   patterns), extended with a NetworkPolicy-object evidence type it lacks.
-- **Sources**: `docs/holmes-weakness-map.md` fixture families `84`, `176`
-  (NetworkPolicy blocking traffic, HolmesGPT's own weakest measured
-  category); [176_network_policy_blocking_traffic test fixture, HolmesGPT/holmesgpt](https://github.com/HolmesGPT/holmesgpt) (documents that even k3s's built-in NP controller and Calico's felix can fail to enforce under some kernels - the same "does it even enforce here" question this candidate's caveat raises); [Kind CNI Does Not Support Default Deny Network Policy · Issue #3705](https://github.com/kubernetes-sigs/kind/issues/3705); [NetworkPolicy support · Issue #842, kubernetes-sigs/kind](https://github.com/kubernetes-sigs/kind/issues/842).
+- **Sources**: NetworkPolicy blocking traffic, a common real class (note that
+  even k3s's built-in NP controller and Calico's felix can fail to enforce under
+  some kernels - the same "does it even enforce here" question this candidate's
+  caveat raises); [Kind CNI Does Not Support Default Deny Network Policy · Issue #3705](https://github.com/kubernetes-sigs/kind/issues/3705); [NetworkPolicy support · Issue #842, kubernetes-sigs/kind](https://github.com/kubernetes-sigs/kind/issues/842).
 
 ## dependency-down-cascading-errors
 
@@ -253,9 +254,8 @@ Istio 1.24 ambient, matching the existing scenarios.
   directly; the risk is that catalog entry auto-applies outlier detection
   and reports success when the errors don't drop, exactly as its own
   rollback text anticipates.
-- **Sources**: `docs/holmes-weakness-map.md` fixture family "Dependency
-  down → latency/errors (`22`, `156`)" (mined from HolmesGPT's own
-  `tests/llm` corpus); [Postmortem: Database Connection Pool Exhaustion Causing Service Outage](https://medium.com/@ngungabn03/postmortem-database-connection-pool-exhaustion-causing-service-outage-9afd33a45311); `catalog/error-surge-outlier-ejection.yaml` (rollback note already names this exact failure mode).
+- **Sources**: dependency-down cascading errors, a common real class;
+  [Postmortem: Database Connection Pool Exhaustion Causing Service Outage](https://medium.com/@ngungabn03/postmortem-database-connection-pool-exhaustion-causing-service-outage-9afd33a45311); `catalog/error-surge-outlier-ejection.yaml` (rollback note already names this exact failure mode).
 
 ## configmap-secret-startup-break
 

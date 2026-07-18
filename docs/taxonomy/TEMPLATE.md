@@ -13,7 +13,7 @@ name.
 - **Telemetry signature**: the metric and label(s) that change, or
   explicitly "absence of traffic", or "no mesh signal (needs object/log)".
 - **Signal draft (PromQL)**: a first-cut query against the payments testbed,
-  or "n/a — object/log evidence only".
+  or "n/a - object/log evidence only".
 - **Inject sketch**: the kubectl/manifest steps to induce it on the payments
   testbed (payments-v1/v2 Deployments, payments Service, loadgen, `demo`
   namespace, Istio ambient). Keep it to what `inject.sh` would run.
@@ -23,5 +23,5 @@ name.
   why. "no" is a valid and useful answer.
 - **Overlaps existing catalog?**: name any of the 9 current entries it
   duplicates or extends, or "new".
-- **Sources**: Istio GitHub issue URLs, istio.io doc URLs, or HolmesGPT
-  fixture names that ground this as a real, observed failure. At least one.
+- **Sources**: Istio GitHub issue URLs, istio.io doc URLs, or public
+  postmortems that ground this as a real, observed failure. At least one.

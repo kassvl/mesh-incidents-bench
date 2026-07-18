@@ -1,39 +1,0 @@
-# scenario: noise-only
-# tool: ./harness/run-k8sgpt-ai.sh
-# date: 2026-07-17T21:33:04Z
-
-W0717 23:33:05.189356   68097 warnings.go:70] v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
-   0% |                                                | (0/3, 0 it/hr) [0s:0s]                                                                                 66% |████████████████████████████████                 | (2/3, 1 it/s) [1s:0s]                                                                                100% |██████████████████████████████████████████████| (3/3, 49 it/min)
-AI Provider: openai
-
-0: ConfigMap demo/kube-root-ca.crt()
-- Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace
-**Error:** The `kube-root-ca.crt` ConfigMap exists in your namespace but isn’t mounted or referenced by any pods.
-
-**Solution:**
-1. **Check usage:** `kubectl get pods -o yaml | grep -A5 "volumes:"` to verify mounts.
-2. **Delete if unused:** `kubectl delete configmap kube-root-ca.crt` (safe if no pods depend on it).
-3. **Recreate if needed:** Kubernetes auto-generates it when a pod requests CA certs.
-1: ConfigMap demo/legacy-feature-flags()
-- Error: ConfigMap legacy-feature-flags is not used by any pods in the namespace
-- Error: ConfigMap legacy-feature-flags is empty
-**Error:** The `legacy-feature-flags` ConfigMap exists but isn’t used by any pods and is empty, making it redundant.
-
-**Solution:**
-1. Check if needed: `kubectl get cm legacy-feature-flags -o yaml`
-2. Delete if unused: `kubectl delete cm legacy-feature-flags`
-3. Recreate later if required.
-2: Service demo/payments-legacy()
-- Error: Service has no endpoints, expected label app=payments-legacy-retired
-**Error:** The `payments-legacy-retired` service has no available pods (endpoints) matching the label `app=payments-legacy-retired`.
-
-**Solution:**
-1. Check pod labels: `kubectl get pods --show-labels`
-2. Verify selector: `kubectl describe svc payments-legacy-retired`
-3. Fix labels or deploy pods with `app=payments-legacy-retired`
-4. Restart pods if needed.
-
-
-# tool_wall_seconds: 8
-# cluster_objects_created_during_run: 0
-# cluster_objects_deleted_during_run: 0

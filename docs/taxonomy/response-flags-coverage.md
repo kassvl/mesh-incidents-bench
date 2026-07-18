@@ -30,7 +30,7 @@ inject them cleanly.
 | flag | meaning | failure class | inject on testbed? | priority |
 | --- | --- | --- | --- | --- |
 | `NR` | No route found | ~~missing/broken VirtualService route~~ | **validated and merged** as `no-route-blackhole` (source-keyed) | done |
-| `DF` | DNS resolution failed | proxy-side DNS failure to a destination | yes: point a ServiceEntry/host at an unresolvable name | high (also the mesh-native counterpart to the client-side `client-dns-typo`, and to Holmes's own DNS fixtures) |
+| `DF` | DNS resolution failed | proxy-side DNS failure to a destination | yes: point a ServiceEntry/host at an unresolvable name | high (also the mesh-native counterpart to the client-side `client-dns-typo`) |
 | `UF` | Upstream connection failure | backend unreachable at the connection layer | yes: wrong port / backend down | high (overlaps client-wrong-port triage; UF is the telemetry-native signal) |
 | `UC` | Upstream connection termination | backend closed the connection mid-request | yes: crash/kill the backend under load | medium |
 | `UR` | Upstream remote reset | backend sent a TCP reset | yes: backend closes abruptly | medium |
@@ -56,6 +56,5 @@ inject them cleanly.
 gap: common real failures with a clean telemetry signal. They go through the
 same gate as every entry - inject on the testbed, observe the real flag and
 labels, only then a catalog entry or bench scenario. `DF` is worth doing first:
-it is both a coverage gap and the mesh-native signal for the DNS-failure class
-that Holmes's own fixtures test, so validating it also sets up the independent
-comparison.
+it is both a coverage gap and the mesh-native signal for the client-DNS failure
+class, so validating it also enriches that lane.

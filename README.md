@@ -11,11 +11,12 @@ and the remediation an experienced mesh operator would apply.
 
 ## Scenarios
 
-Eleven scenarios today. The six below carry the scored leaderboard; the five
-added since (`authz-deny-flood`, `client-wrong-port`, `client-wrong-scheme`,
-`fault-injection-left`, `route-timeout-too-short`) are validated on the testbed
-for MeshMedic but not yet run against the other tools, so they are not scored
-below. Reruns of the other tools on the newer scenarios are welcome as PRs.
+Eleven scenarios today. The six below were the original set; five more
+(`authz-deny-flood`, `client-wrong-port`, `client-wrong-scheme`,
+`fault-injection-left`, `route-timeout-too-short`) have been added since. Each
+is a real fault injected into a live mesh, with a documented root cause, the
+remediation an operator would apply, and a scoring rubric in its
+`ground-truth.md`.
 
 | id | fault | mesh-native remediation |
 | --- | --- | --- |
@@ -62,72 +63,42 @@ The benchmark and MeshMedic share an author. A new scenario, especially one
 the author's tool does poorly on, is the best fix for that bias; see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Leaderboard (v0.2, 2026-07-17)
+## Comparison: MeshMedic vs istioctl analyze
 
-| tool | canary-latency | error-surge | pool-overflow | mtls-conflict | noise-only | client-dns-typo | total |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| [MeshMedic](https://github.com/kassvl/meshmedic) * | 6 | 6 | 6 | 6 | 6 | 6 ‡ | **36 / 36** |
-| HolmesGPT (mistral-large) † | 6 | 5 | 0 | 0 | 3 | 0 | **14 / 36** |
-| k8sgpt (no AI) | 0 | 0 | 0 | 0 | 4 | 0 | **4 / 36** |
-| k8sgpt (AI, mistral-large) | 0 | 0 | 0 | 0 | 2 | 0 | **2 / 36** |
+An earlier version of this benchmark scored general Kubernetes tools (HolmesGPT,
+k8sgpt) on these mesh scenarios. That was a category error and has been removed:
+those tools do not target the service mesh. HolmesGPT's own 266-fixture
+evaluation corpus contains zero Istio scenarios (audited 2026-07-19; the only
+"traffic" fixtures are CNI NetworkPolicy), so testing it on mesh incidents
+measured a domain mismatch, not tool quality, and "MeshMedic beats Holmes" was
+never a well-formed claim - they are tools for different layers.
 
-‡ client-dns-typo was designed as the breadth-honesty control where
-catalog tools are *expected* to score 0 - and MeshMedic's first run did
-score 0, as recorded in `raw/`. The 6 comes from the v0.3 deterministic
-triage layer (absence signal + log-signature sweep + rollout template
-diff) built *in response to* this scenario: the dossier names the failing
-host from the client's logs and shows the exact bad line in the rollout
-diff. Developed after studying the scenario, like everything else in the
-home game - but the mechanism generalizes to any bad client deploy, and
-live verification caught two real bugs (Kubernetes ReplicaSet reuse
-defeating age-based rollout detection; a fixed-offset baseline going
-blind inside back-to-back outages) that are now regression-tested.
+The fair, same-domain reference is [`istioctl
+analyze`](results/istioctl-analyze.md), Istio's own configuration analyzer. Both
+it and MeshMedic read the mesh; the honest question is what each one sees. Run
+against the scenarios on the live testbed:
 
-\* Same author as this benchmark, and the v0.2 MeshMedic changes were
-developed against these exact scenarios: a home game played after studying
-the tape, disclosed in full in [results/meshmedic.md](results/meshmedic.md).
-Outside scenarios and reruns of the other tools are welcome as PRs.
+| scenario / fault | istioctl analyze | MeshMedic |
+| --- | --- | --- |
+| Config error: a VirtualService references a subset no DestinationRule defines | catches it: `Error [IST0101] ... payments+v3` | sees it only once traffic fails at runtime |
+| Runtime 5xx surge (`error-surge`, ERROR_RATE 0.9) | `No validation issues found` | detects it and names the failing subset |
+| Rate limit rejecting live traffic (429/RL) | a generic EnvoyFilter hygiene warning, not "traffic is being throttled" | detects the 429/RL and names the throttled caller |
 
-† canary-latency and error-surge carry over from v0.1 (completed cleanly
-then). pool-overflow, mtls-conflict and noise-only are v0.2 runs with the
-transport fixed (paced proxy, zero provider errors): each consumed its full
-15-step budget and ended in a max-steps exception with no final answer.
-These mistral-large numbers are a lower bound on HolmesGPT: on its own
-public eval suite its best model (Claude Sonnet 4) passes 86% and GPT-4o
-56%, so investigation quality is strongly model-dependent. Details,
-transport disclosure and the citation in
-[results/holmesgpt.md](results/holmesgpt.md).
+The split is complementary, not a contest. `istioctl analyze` is a config-time
+linter: it answers "is my Istio configuration valid and safe?" before traffic,
+and catches invalid references and mode conflicts, which MeshMedic does not do.
+A valid but wrong config - a timeout shorter than the backend, a rate limit set
+too low - passes istioctl analyze and only surfaces once traffic hits it, which
+is MeshMedic's job. MeshMedic is a runtime incident detector, reading the
+Prometheus and ztunnel telemetry istioctl analyze never looks at. Run istioctl
+analyze in CI to keep the config valid; run MeshMedic against live telemetry to
+catch what a valid config does under real traffic.
 
-What the numbers actually say: when HolmesGPT completes an investigation,
-it is genuinely good. Its v0.1 canary diagnosis (reading the injected env
-var off the pod spec) was the deepest any tool produced. But across five
-scenarios it completed two. The failures are no longer provider 429s: with
-a clean paced transport it exhausted its step budget wandering, never
-touching `response_flags=UO` in pool-overflow, never touching
-PeerAuthentication or ztunnel in mtls-conflict, and never managing to say
-"nothing is wrong" on a healthy cluster in noise-only. v0.2 MeshMedic
-closes every gap HolmesGPT's good runs exposed (labeled evidence names the
-5xx subset; configuration evidence reads the same env vars
-deterministically in seconds) and detects the ambient mTLS conflict from
-ztunnel's TCP telemetry
-(`istio_tcp_connections_closed_total{response_flags="DENY"}`), naming both
-the denied client and the STRICT policy. On noise-only, k8sgpt's AI mode
-scored below its own no-AI mode: the LLM wrapped harmless findings in
-confident error narratives with imperative fixes. The k8sgpt fault-scenario
-zeros are still not a k8sgpt bug: its analyzers inspect object state, mesh
-incidents leave objects healthy, and an AI backend cannot explain what the
-scanner never sees ([results/k8sgpt.md](results/k8sgpt.md)).
-
-**Read the leaderboard as coverage, not a verdict on tool quality.** HolmesGPT
-and k8sgpt are general Kubernetes tools; neither targets the service mesh.
-HolmesGPT's own 266-fixture evaluation corpus contains zero Istio or mesh
-scenarios (audited 2026-07-19; the only "traffic" fixtures are CNI
-NetworkPolicy). So this benchmark tests these tools on a layer they do not
-aim at, which is why they score low here and MeshMedic scores high, and it is
-also why there is no fixture in Holmes's own suite on which MeshMedic could
-compete. The honest reading is not "MeshMedic is better than Holmes" but
-"MeshMedic covers the mesh-telemetry layer that general Kubernetes tools do
-not." They are complementary, not rivals.
+MeshMedic's own diagnosis quality against each scenario's rubric, disclosed as a
+home game (same author as this benchmark, developed against these exact
+scenarios), is in [results/meshmedic.md](results/meshmedic.md). The standing fix
+for that bias is scenarios authored independently; see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Testbed
 
@@ -152,9 +123,6 @@ is worth knowing about before you page it.
 
 ## Reference docs
 
-- [docs/holmes-weakness-map.md](docs/holmes-weakness-map.md): category-level
-  analysis of where a deterministic-first tool can beat an LLM agent, drawn
-  from HolmesGPT's own published evaluations and fixture corpus.
 - [docs/ambient-l4-denial-telemetry.md](docs/ambient-l4-denial-telemetry.md):
   how to detect ambient strict-mTLS denials from ztunnel's L4 telemetry, the
   signal every request-metric tool misses on `mtls-conflict`. Metric names
@@ -171,14 +139,14 @@ is worth knowing about before you page it.
 
 ## Status and goals
 
-Six scenarios are scored on the leaderboard; five more are validated for
-MeshMedic and awaiting reruns of the other tools. The honest limit of the
-leaderboard is that its author also wrote the tool, so the next priority is
-credibility: scenarios authored independently of MeshMedic (reproductions of
-HolmesGPT's own DNS and network fixtures, and real Istio incidents from public
-sources) and, budget permitting, a frontier-model HolmesGPT run so the
-comparison is not against a handicapped opponent. Contributions on both fronts
-are the point of the repository, not an afterthought.
+The honest limit of this benchmark is that its author also wrote MeshMedic, so
+MeshMedic's scores are a home game. The `istioctl analyze` comparison is fair
+(same domain, independent tool) but narrow, because istioctl is a config linter,
+not an incident detector. The real credibility fix is scenarios authored
+independently of MeshMedic: real Istio incidents from public postmortems and
+issues, contributed by mesh operators who did not build the tool being scored.
+That is the point of the repository, not an afterthought; see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
