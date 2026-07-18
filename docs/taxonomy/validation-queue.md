@@ -7,7 +7,7 @@ Ranking favors: a clean deterministic signal, a fault that is common in
 production, cheap injection on the existing testbed, and a signal class the
 9-entry catalog does not already cover.
 
-## Tier 1 — validate first (clean signal, new class, cheap inject)
+## Tier 1 - validate first (clean signal, new class, cheap inject)
 
 1. **authz-scoped-allow-default-deny-gap** (security). A new remediation
    family: AuthorizationPolicy. Default-deny namespace plus a missing or
@@ -30,7 +30,7 @@ production, cheap injection on the existing testbed, and a signal class the
    the absence-signal + log-signature + rollout-diff dossier generalizes
    beyond the DNS typo to any wrong-target client deploy. Very cheap.
 
-## Tier 2 — validate after tier 1 (clean but adjacent, or needs a small evidence add)
+## Tier 2 - validate after tier 1 (clean but adjacent, or needs a small evidence add)
 
 - **subset-selector-zero-endpoints** (traffic): UH flag, adjacent to
   `upstream-host-ejection-flood`; distinct root cause (label mismatch).
@@ -51,7 +51,7 @@ production, cheap injection on the existing testbed, and a signal class the
 - **waypoint-missing-l7-noop** (ambient): L7 policy silently a no-op;
   `reporter="waypoint"` absence contrast.
 
-## Deferred — real classes, not injectable on this testbed
+## Deferred - real classes, not injectable on this testbed
 
 Documented in the candidate files for the encyclopedia, but out of scope for
 validation until the testbed grows:
