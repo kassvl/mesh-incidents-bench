@@ -49,22 +49,48 @@ production, cheap injection on the existing testbed, and a signal class the
   evidence uses `envoy_cluster_*` / kube-state metrics the stock addon does
   not scrape, so the kubectl-based object evidence is the part that actually
   resolves on this testbed.
-- **fault-injection-left-in-production** (traffic): a forgotten
-  fault-injection VirtualService; clean `response_flags` signal.
-- **ztunnel-node-crashloop-blackhole** (ambient): the one clean "yes" in the
-  ambient slice; inject by lowering the ztunnel DaemonSet memory limit.
-  Touches `istio-system`, so slightly higher blast radius.
-- **image-tag-bad-rollout** / **readiness-probe-misconfig** (client): both
-  clean object signals, both rollout-diff root causes; strong triage
-  extensions.
-- **configmap-secret-startup-break** (client): `CreateContainerConfigError`,
-  clean, new.
-- **dependency-down-cascading-errors** (client): extends
+- ~~**fault-injection-left-in-production** (traffic)~~. Validated and
+  merged as `fault-injection-left-in-production` (catalog entry + scenario).
+  FI response flag verified live at ~1.5 rps; distinct from a genuine 5xx
+  surge, so it suppresses error-surge and is report-only (the object evidence
+  pins the fault stanza to remove). End-to-end confirmed only it fires.
+- ~~**ztunnel-node-crashloop-blackhole** (ambient)~~. Deferred: the signal is
+  a pod restart/waiting-reason series, which is kube-state-metrics. The stock
+  addon does not scrape it (same gap as the OOM group), so there is no
+  Prometheus signal to trigger a scenario. Moves in with the pod-status group
+  once kube-state-metrics is added to the testbed.
+- ~~**image-tag-bad-rollout**, **readiness-probe-misconfig**,
+  **configmap-secret-startup-break** (client)~~. Deferred with the pod-status
+  group (see Deferred): all three trigger on kube-state-metrics the addon
+  does not scrape. Their rollout-diff root cause would be caught by the
+  triage layer, but the trigger signal is missing on this testbed.
+- ~~**dependency-down-cascading-errors** (client)~~. Deferred: the payments
+  testbed has no downstream dependency for the service to call, so a
+  "dependency down" fault is indistinguishable from `error-surge` here (both
+  are the service returning 5xx). Needs a testbed with a real downstream to
+  separate a caller-side cause from the service's own errors. Original note:
+  extends
   `error-surge-outlier-ejection` with a downstream-dependency root cause.
-- **ambient-namespace-not-enrolled** (ambient): policy silently not applied,
-  a class no request-metric tool sees; needs a label-object evidence type.
-- **waypoint-missing-l7-noop** (ambient): L7 policy silently a no-op;
-  `reporter="waypoint"` absence contrast.
+- ~~**ambient-namespace-not-enrolled** (ambient)~~. Deferred: a real,
+  high-value class (policy silently not applied), but unenrolling the demo
+  namespace removes the whole namespace from the ambient dataplane, nuking
+  the very waypoint telemetry the testbed observes through, and its signal
+  (waypoint metrics vanish while traffic still flows direct) overlaps the
+  traffic-vanished absence signal. Distinguishing "bypassed" from "stopped"
+  needs a namespace-enrollment-label object evidence added to
+  traffic-vanished, and validating it cleanly needs a multi-namespace testbed
+  where one workload is unenrolled while observability stays intact. Recorded
+  as a planned enrichment, not a single-namespace-testbed validation.
+- ~~**waypoint-missing-l7-noop** (ambient)~~. Deferred, same reason: the demo
+  relies on the waypoint for its L7 metrics, so removing it to simulate a
+  missing-waypoint namespace removes the observability the scenario would be
+  measured through. Its `reporter="waypoint"` absence also overlaps
+  traffic-vanished. Needs a testbed where an L7 policy is present but no
+  waypoint enforces it, isolatable per-namespace.
+
+Tier 2 is complete: subset-selector and fault-injection validated (one
+enriched an existing entry, one became a new entry), the rest deferred with
+documented findings above.
 
 ## Deferred - real classes, not injectable on this testbed
 
