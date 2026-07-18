@@ -81,7 +81,11 @@ DELETED="$(comm -23 "$SNAP_BEFORE" "$SNAP_AFTER" || true)"
   echo "# tool_wall_seconds: $TOOL_ELAPSED"
   echo "# cluster_objects_created_during_run: $(printf '%s' "$CREATED" | grep -c . || true)"
   echo "# cluster_objects_deleted_during_run: $(printf '%s' "$DELETED" | grep -c . || true)"
+  # Word-splitting is intended here: each object name in the list becomes
+  # its own "# created:" / "# deleted:" line via printf's format reuse.
+  # shellcheck disable=SC2086
   [ -z "$CREATED" ] || printf '# created: %s\n' $CREATED
+  # shellcheck disable=SC2086
   [ -z "$DELETED" ] || printf '# deleted: %s\n' $DELETED
 } >> "$OUT"
 rm -f "$SNAP_BEFORE" "$SNAP_AFTER"
