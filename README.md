@@ -89,10 +89,10 @@ transport disclosure and the citation in
 [results/holmesgpt.md](results/holmesgpt.md).
 
 What the numbers actually say: when HolmesGPT completes an investigation,
-it is genuinely good — its v0.1 canary diagnosis (reading the injected env
+it is genuinely good. Its v0.1 canary diagnosis (reading the injected env
 var off the pod spec) was the deepest any tool produced. But across five
 scenarios it completed two. The failures are no longer provider 429s: with
-a clean paced transport it exhausted its step budget wandering — never
+a clean paced transport it exhausted its step budget wandering, never
 touching `response_flags=UO` in pool-overflow, never touching
 PeerAuthentication or ztunnel in mtls-conflict, and never managing to say
 "nothing is wrong" on a healthy cluster in noise-only. v0.2 MeshMedic
@@ -127,6 +127,16 @@ wall time and an inventory diff of cluster objects created or deleted while
 the tool ran. Investigation side effects are part of a tool's cost; a
 diagnostic run that spawns test pods in a production namespace mid-incident
 is worth knowing about before you page it.
+
+## Reference docs
+
+- [docs/holmes-weakness-map.md](docs/holmes-weakness-map.md): category-level
+  analysis of where a deterministic-first tool can beat an LLM agent, drawn
+  from HolmesGPT's own published evaluations and fixture corpus.
+- [docs/ambient-l4-denial-telemetry.md](docs/ambient-l4-denial-telemetry.md):
+  how to detect ambient strict-mTLS denials from ztunnel's L4 telemetry, the
+  signal every request-metric tool misses on `mtls-conflict`. Metric names
+  and label sets verified live on Istio 1.24.1.
 
 ## License
 

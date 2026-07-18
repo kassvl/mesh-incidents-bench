@@ -29,3 +29,9 @@ are scored on finding it, not on which of those surfaces they use.
 | 0 | nothing flagged | no cause named | none or harmful |
 | 1 | client failures flagged | TLS suspected, policy missed | generic (restart, network debug) |
 | 2 | rejected plaintext flagged | STRICT vs plaintext client named | enroll client or scoped PERMISSIVE |
+
+## Finding the signal
+
+A practical reference for detecting this in Prometheus (exact metric,
+labels, PromQL, and the access-log alternative) is in
+[docs/ambient-l4-denial-telemetry.md](../../docs/ambient-l4-denial-telemetry.md).
