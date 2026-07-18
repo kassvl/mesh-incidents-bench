@@ -137,6 +137,10 @@ is worth knowing about before you page it.
   how to detect ambient strict-mTLS denials from ztunnel's L4 telemetry, the
   signal every request-metric tool misses on `mtls-conflict`. Metric names
   and label sets verified live on Istio 1.24.1.
+- [docs/investigation-footprint.md](docs/investigation-footprint.md): the
+  cost axis of how much a diagnostic tool mutates the cluster while it
+  investigates, how the harness measures it, and why MeshMedic's zero is a
+  design guarantee while an agent's is per-run.
 
 ## License
 
