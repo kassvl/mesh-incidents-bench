@@ -122,7 +122,8 @@ scanner never sees ([results/k8sgpt.md](results/k8sgpt.md)).
 
 Scenarios run against the [MeshMedic demo environment](https://github.com/kassvl/meshmedic)
 (kind + Istio ambient + a two-version payments service that calls a downstream
-ledger dependency + Prometheus): bring it up with `demo/scripts/00..02`, then:
+ledger dependency, fronted by a north-south ingress Gateway + Prometheus):
+bring it up with `demo/scripts/00..02`, then:
 
 ```console
 $ ./harness/run.sh scenarios/canary-latency 300 -- <your tool command>
