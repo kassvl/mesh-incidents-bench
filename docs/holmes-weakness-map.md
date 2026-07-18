@@ -72,10 +72,13 @@ categories - decompose into concrete failure classes:
 | Network flapping (`75`) | 1 | Harder: needs variance/flap detection over time | Research candidate |
 | Traces/APM-dependent chains (`114-124`, newrelic/datadog) | ~10 | No - APM integration surface, out of wedge | Deliberately skipped |
 
-Reading: the biggest chunk of their weakest categories is not exotic - it
-is DNS, network policy, and bad-config classes, exactly the
-client/config-layer families the triage layer targets. Their corpus, their
-weights, our lane.
+Reading: their weakest categories are DNS, network policy, and bad-config
+classes. These *inspired* mesh-and-client analogues in our taxonomy (a
+client-side DNS failure became `client-dns-typo`, a routing miss became
+`no-route-blackhole`), but the fixtures themselves are plain Kubernetes and
+MeshMedic does not run against them. The corpus is a source of real failure
+*ideas* to reproduce mesh-side, not a set of scenarios MeshMedic covers. Their
+corpus is their lane; the mesh analogue is ours.
 
 ## How this feeds the taxonomy pipeline
 
