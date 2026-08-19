@@ -16,6 +16,8 @@ telemetry (some need infrastructure the single-service ambient testbed lacks).
 | flag | meaning | catalog entry |
 | --- | --- | --- |
 | `DENY` | RBAC/authorization denial | mtls-policy-conflict-ambient, authz-deny-flood |
+| `RL` | Rate limited | rate-limit-throttling (EnvoyFilter local rate limit on the payments waypoint) |
+| `UAEX` | External authorization denied | external-authz-denial (ext_authz filter calling a deny-all service; distinct from the native-policy DENY above) |
 | `UH` | No healthy upstream | upstream-host-ejection-flood, subset-selector (enriched) |
 | `UO` | Upstream overflow (circuit breaking) | pool-overflow |
 | `UT` | Upstream request timeout | route-timeout-too-short |
@@ -43,8 +45,7 @@ inject them cleanly.
 
 | flag | why deferred |
 | --- | --- |
-| `RL`, `RLSE` | need a rate-limit filter / ratelimit service configured |
-| `UAEX` | needs an external authorization service |
+| `RLSE` | needs a ratelimit *service*; the local rate-limit filter behind `RL` is now on the testbed and validated |
 | `OM`, `DO`, `UDO` | need the overload manager / load-shedding under real memory pressure |
 | `LH` | needs active health checking configured on the cluster |
 | `NC` | cluster-not-found is usually a config-load error, not a runtime traffic signal |
