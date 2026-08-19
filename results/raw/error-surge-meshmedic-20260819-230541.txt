@@ -1,0 +1,79 @@
+# scenario: error-surge
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T21:09:30Z
+
+meshmedic: 2026/08/19 23:09:32 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:09:32 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:09:32 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/19 23:09:32 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/19 23:09:32 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/19 23:09:32 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/19 23:09:33 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:09:47 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:10:02 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:10:17 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:10:34 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:10:50 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:11:02 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:11:17 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:11:34 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:11:48 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:12:02 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+## Incident: Sustained 5xx surge from a service
+
+Scenario `error-surge-outlier-ejection` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **0.2196** (threshold > 0.15 for 120s) since 2026-08-19T21:10:17Z.
+
+### Diagnosis
+
+A service's 5xx ratio holds above 15 percent. When the errors come from a subset of bad endpoints (bad node, wedged pod), ejecting unhealthy hosts from the load balancing pool restores service without touching the workload. Outlier detection does that automatically once configured.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| errors-by-workload{destination_workload="payments-v2"} | 0.7905 |
+| errors-by-workload{destination_workload="payments-v1"} | 0 |
+| errors-by-workload{destination_workload="unknown"} | 0 |
+| requests-by-workload{destination_workload="payments-v1"} | 2.81 |
+| requests-by-workload{destination_workload="payments-v2"} | 0.7905 |
+| requests-by-workload{destination_workload="unknown"} | 0 |
+
+### Configuration evidence
+
+- suspect-workload-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].env`: `NAME=payments-v2 MESSAGE=ok TIMING_50_PERCENTILE=20ms UPSTREAM_URIS=http://ledger:9090 ERROR_RATE=0.9 ERROR_CODE=500`
+
+### Proposed patch (DestinationRule)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payments-outlier
+  namespace: demo
+spec:
+  host: payments
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 50
+```
+
+### Rollback
+
+If the 5xx ratio does not drop after ejection, the failure is uniform across endpoints (bad deploy, downstream dependency) and this patch is not the fix; revert it and check the canary-latency-rollback and upstream dependencies. maxEjectionPercent 50 caps the blast radius either way.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/19 23:12:18 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:12:32 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:12:47 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:13:02 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:13:17 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

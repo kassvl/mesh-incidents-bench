@@ -178,3 +178,34 @@ is a fast-moving component; treat the exact label set as version-specific
 and re-verify against your own build. The shape of the signal (a policy
 denial surfacing at L4 rather than L7) is inherent to how ambient enforces
 mTLS and is not expected to change.
+
+## The sidecar contrast, measured
+
+This document's claim has always been that ambient's L4 denial telemetry
+catches something request metrics cannot. On 2026-08-19 the other half of that
+contrast was measured directly rather than assumed.
+
+STRICT mTLS was applied to a sidecar-mode namespace with an unenrolled
+plaintext caller. Setup verified: the PeerAuthentication was in place, the
+workload pods were injected and running 2/2, and an in-mesh caller in the same
+namespace kept reporting 200s at 7.7 rps throughout, so the mesh was healthy
+and enforcing.
+
+The plaintext caller was genuinely rejected: `curl` exited 56, the connection
+reset. And the mesh recorded **nothing**:
+
+| what was queried | result |
+| --- | --- |
+| `istio_requests_total{destination_workload="orders-v2", response_code="503"}` | no series |
+| `istio_tcp_connections_closed_total{destination_service_namespace="demo-sidecar"}` | no series |
+
+A sidecar drops the connection at the TLS layer before any metric exists to
+stamp it. In ambient mode the same denial is recorded by ztunnel as
+`istio_tcp_connections_closed_total{response_flags="DENY"}`, which is what
+makes it detectable at all.
+
+So the difference between the two data planes here is not that one signal is
+better shaped than the other. It is that one data plane emits a signal and the
+other emits none, and any tool watching a sidecar mesh for this failure class
+is watching for something that will never arrive.
+

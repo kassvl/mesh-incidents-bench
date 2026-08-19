@@ -1,0 +1,37 @@
+# scenario: noise-only
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T21:38:07Z
+
+meshmedic: 2026/08/19 23:38:08 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:38:08 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:38:08 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/19 23:38:08 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/19 23:38:08 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/19 23:38:08 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/19 23:38:08 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:38:23 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:38:39 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:38:54 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:39:08 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:39:27 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:39:39 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:39:54 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:40:09 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:40:25 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:40:39 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:40:55 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:41:19 no-route-blackhole|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=sum%28rate%28istio_requests_total%7Breporter%3D%22waypoint%22%2C+source_workload_namespace%3D%22demo%22%2C+response_flags%3D%22NR%22%7D%5B2m%5D%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 rate-limit-throttling|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=sum%28rate%28istio_requests_total%7Breporter%3D~%22source%7Cwaypoint%22%2C+destination_service_name%3D%22payments%22%2C+destination_service_namespace%3D%22demo%22%2C+response_flags%3D%22RL%22%7D%5B2m%5D%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 route-timeout-too-short|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=sum%28rate%28istio_requests_total%7Breporter%3D%22waypoint%22%2C+destination_service_name%3D%22payments%22%2C+destination_service_namespace%3D%22demo%22%2C+response_flags%3D%22UT%22%7D%5B2m%5D%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 traffic-vanished-triage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=%28%28sum%28rate%28istio_requests_total%7Breporter%3D~%22destination%7Cwaypoint%22%2C+destination_service_name%3D%22payments%22%2C+destination_service_namespace%3D%22demo%22%7D%5B2m%5D%29%29+or+vector%280%29%29+%3C+bool+0.05%29+%2A+%28max_over_time%28%28sum%28rate%28istio_requests_total%7Breporter%3D~%22destination%7Cwaypoint%22%2C+destination_service_name%3D%22payments%22%2C+destination_service_namespace%3D%22demo%22%7D%5B2m%5D%29%29+or+vector%280%29%29%5B30m%3A1m%5D%29+%3E+bool+0.5%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 upstream-dependency-errors|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=sum%28rate%28istio_requests_total%7Breporter%3D~%22source%7Cwaypoint%22%2C+source_app%3D%22payments%22%2C+source_workload_namespace%3D%22demo%22%2C+response_code%3D~%225..%22%7D%5B2m%5D%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 upstream-dependency-latency|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=histogram_quantile%280.99%2C+sum+by+%28le%29+%28rate%28istio_request_duration_milliseconds_bucket%7Breporter%3D~%22source%7Cwaypoint%22%2C+source_app%3D%22payments%22%2C+source_workload_namespace%3D%22demo%22%7D%5B2m%5D%29%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 upstream-host-ejection-flood|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: query: Get "http://127.0.0.1:9090/api/v1/query?query=sum%28rate%28istio_requests_total%7Breporter%3D~%22source%7Cwaypoint%22%2C+destination_service_name%3D%22payments%22%2C+destination_service_namespace%3D%22demo%22%2C+response_flags%3D%22UH%22%7D%5B2m%5D%29%29%0A": dial tcp 127.0.0.1:9090: connect: connection refused
+meshmedic: 2026/08/19 23:41:19 1 targets observed, 0 unobserved, 7 scenarios blind (0 firing, 8 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:41:25 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:41:43 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:41:55 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

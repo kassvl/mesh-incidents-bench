@@ -1,0 +1,91 @@
+# scenario: pool-overflow
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T21:24:30Z
+
+meshmedic: 2026/08/19 23:24:30 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:24:30 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:24:30 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/19 23:24:30 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/19 23:24:30 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/19 23:24:31 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/19 23:24:31 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:24:46 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:25:01 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:25:16 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+## Incident: Requests dropped by connection pool limits
+
+Scenario `connection-pool-overflow` (severity warning) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **12.71** (threshold > 1 for 60s) since 2026-08-19T21:24:30Z.
+
+### Diagnosis
+
+Requests are failing with the UO (upstream overflow) response flag, meaning Envoy's circuit breaker is shedding load because the configured connection pool for the destination is exhausted. If the destination has spare capacity (CPU and memory healthy), the limits are simply undersized for current traffic and can be raised. If the destination is saturated, raising limits makes things worse; the evidence queries make that call reviewable.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| uo-rate-by-workload{destination_workload="payments-v1"} | 8.058 |
+| uo-rate-by-workload{destination_workload="unknown"} | 3.553 |
+| uo-rate-by-workload{destination_workload="payments-v2"} | 1.105 |
+| request-rate-by-workload{destination_workload="payments-v1"} | 10.99 |
+| request-rate-by-workload{destination_workload="unknown"} | 3.553 |
+| request-rate-by-workload{destination_workload="payments-v2"} | 3.095 |
+
+### Configuration evidence
+
+- destination-resources (`Deployment demo/payments-v2`) `spec.replicas`: `1`
+- destination-resources (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].resources`: `{}`
+
+### Proposed patch (DestinationRule)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: payments-pool
+  namespace: demo
+spec:
+  host: payments
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 512
+      http:
+        http1MaxPendingRequests: 256
+        http2MaxRequests: 512
+```
+
+### Rollback
+
+If UO drops but the destination starts failing under real load, the pool limit was doing its job; revert this patch and scale the destination workload instead. The reviewer should weigh request-rate-by-workload against the destination-resources configuration evidence before merging.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/19 23:25:31 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:25:46 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:26:01 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:26:16 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:26:31 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:26:31 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:26:46 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:26:46 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:27:01 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:27:01 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:27:16 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:27:16 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:27:31 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:27:31 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:27:49 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:27:49 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:28:02 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:28:02 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:28:16 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by connection-pool-overflow: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:28:16 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:28:30 target namespace=demo service=payments stable_subset=v1 subset=v2 workload=payments-v2 is unobserved: coverage probe failed: Get "http://127.0.0.1:9090/api/v1/query?query=count%28istio_requests_total%7Bdestination_service_namespace%3D%22demo%22%7D%29": terminated signal received
+meshmedic: 2026/08/19 23:28:30 0 targets observed, 1 unobserved, 16 scenarios blind (0 firing, 0 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

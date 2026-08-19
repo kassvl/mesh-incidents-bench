@@ -16,6 +16,46 @@ OUT_DIR="$(dirname "$0")/../results/raw"
 mkdir -p "$OUT_DIR"
 OUT="$OUT_DIR/${ID}-${TOOL_NAME}-$(date +%Y%m%d-%H%M%S).txt"
 
+# Preflight. Nothing is injected until all of this passes, because every
+# check here stands for a run that was wasted or worse.
+#
+# The context check is the expensive one. No scenario script pins a
+# `--context`, deliberately: a scenario should run against whatever cluster
+# you point at. That portability makes the harness the only place that can
+# catch "you are pointed somewhere else", and being pointed somewhere else
+# here does not merely read stale data the way a diagnostic tool would. The
+# scenarios WRITE: they set env vars, apply EnvoyFilters and edit routes. A
+# wrong context injects a fault into a cluster nobody meant to touch and
+# then scores the tool on a cluster where nothing happened.
+EXPECT_CONTEXT="${BENCH_CONTEXT:-kind-meshmedic-demo}"
+ACTUAL_CONTEXT="$(kubectl config current-context 2>/dev/null || true)"
+if [ "$ACTUAL_CONTEXT" != "$EXPECT_CONTEXT" ]; then
+  echo "refusing to run: kubectl context is '${ACTUAL_CONTEXT:-none}', expected '$EXPECT_CONTEXT'" >&2
+  echo "  the scenarios write to the cluster; switch context or set BENCH_CONTEXT" >&2
+  exit 1
+fi
+
+PROM="${BENCH_PROMETHEUS:-http://127.0.0.1:9090}"
+if ! curl -sf --max-time 5 "$PROM/api/v1/query?query=up" >/dev/null 2>&1; then
+  echo "refusing to run: nothing answering at $PROM (port-forward down?)" >&2
+  echo "  kubectl -n istio-system port-forward svc/prometheus 9090:9090" >&2
+  exit 1
+fi
+
+# A live port-forward is not proof it points at THIS cluster: forwards
+# outlive the cluster they were opened against, and a tool then reads a
+# healthy stranger while the fault sits uninjected next door. Ask Prometheus
+# whether it can actually see the namespace the scenarios run in.
+if ! curl -sf --max-time 5 --get "$PROM/api/v1/query" \
+       --data-urlencode 'query=count(istio_requests_total{destination_service_namespace="demo"})' \
+       2>/dev/null | grep -q '"value"'; then
+  echo "refusing to run: $PROM sees no mesh traffic in the demo namespace" >&2
+  echo "  the forward may point at a different cluster than $EXPECT_CONTEXT" >&2
+  exit 1
+fi
+
+# Armed only now: the trap exists to undo an injection, and nothing has been
+# injected until every check above has passed.
 cleanup() { "$SCENARIO_DIR/reset.sh" || true; }
 trap cleanup EXIT
 

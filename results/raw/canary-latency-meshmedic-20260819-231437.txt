@@ -1,0 +1,90 @@
+# scenario: canary-latency
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T21:17:22Z
+
+meshmedic: 2026/08/19 23:17:25 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:17:25 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:17:25 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/19 23:17:25 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/19 23:17:25 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/19 23:17:27 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/19 23:17:28 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:17:41 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:17:55 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:18:10 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:18:27 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:18:40 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+## Incident: Canary subset latency regression
+
+Scenario `canary-latency-rollback` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **2482** (threshold > 1000 for 90s) since 2026-08-19T21:17:25Z.
+
+### Diagnosis
+
+A newly shifted traffic subset (canary) shows p99 latency far above the stable subset. The fastest safe move during an incident is to send traffic back to the stable subset and investigate the canary offline. This entry assumes the DestinationRule defines the failing subset and a stable subset.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| p99-stable-for-comparison | 217 |
+| canary-request-share | 0.1951 |
+
+### Configuration evidence
+
+- canary-deployment-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].env`: `NAME=payments-v2 MESSAGE=ok TIMING_50_PERCENTILE=1200ms UPSTREAM_URIS=http://ledger:9090 TIMING_90_PERCENTILE=1500ms`
+- canary-deployment-env (`Deployment demo/payments-v2`) `spec.template.spec.containers[*].resources`: `{}`
+
+### Proposed patch (VirtualService)
+
+```yaml
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: payments
+  namespace: demo
+spec:
+  hosts:
+    - payments
+  http:
+    - route:
+        - destination:
+            host: payments
+            subset: v1
+          weight: 100
+        - destination:
+            host: payments
+            subset: v2
+          weight: 0
+```
+
+### Rollback
+
+Restore the previous VirtualService weights once the canary's p99 is back under the threshold in a staging replay, or roll forward with a fixed canary image. The PR that shifted traffic contains the prior weights in its diff.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/19 23:18:56 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:19:11 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:19:25 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:19:25 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:19:40 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:19:40 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:19:55 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:19:55 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:20:10 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:20:10 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:20:25 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:20:25 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:20:40 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:20:40 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:20:55 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:20:55 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:21:10 latency-regression-vs-baseline|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by canary-latency-rollback: cascade symptom, not a second incident
+meshmedic: 2026/08/19 23:21:10 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 1
+# deleted: pod/payments-v2-6fc58d5dc5-kj2md

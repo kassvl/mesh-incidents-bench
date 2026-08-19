@@ -19,8 +19,8 @@ for the payments service itself.
 
 **Why this scenario exists**: every real cluster is full of things that look
 vaguely wrong. An investigator that treats each of them as the incident
-produces alert fatigue and, worse, "fixes" for problems that do not exist —
-the failure mode this benchmark's other scenarios cannot see. This scenario
+produces alert fatigue and, worse, "fixes" for problems that do not exist.
+That is the failure mode this benchmark's other scenarios cannot see. This scenario
 measures discipline: knowing when NOT to act. Threshold-and-hold detectors
 pass it by construction only if their thresholds are honest; agentic
 investigators pass it only if they can conclude "nothing is wrong" and stop.

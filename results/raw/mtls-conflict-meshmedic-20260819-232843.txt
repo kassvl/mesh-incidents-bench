@@ -1,0 +1,76 @@
+# scenario: mtls-conflict
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T21:31:26Z
+
+meshmedic: 2026/08/19 23:31:26 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:31:26 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/19 23:31:26 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/19 23:31:26 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/19 23:31:26 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/19 23:31:27 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/19 23:31:27 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:31:42 1 targets observed, 0 unobserved, 0 scenarios blind (0 firing, 15 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:31:57 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:32:12 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:32:27 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:32:43 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:32:57 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+## Incident: Plaintext client denied at L4 by ztunnel (ambient strict mTLS)
+
+Scenario `mtls-policy-conflict-ambient` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **0.9809** (threshold > 0.2 for 60s) since 2026-08-19T21:31:56Z.
+
+### Diagnosis
+
+A client without mesh identity keeps opening plaintext connections to a service in a STRICT-mTLS ambient namespace. ztunnel rejects each attempt at L4, so nothing ever reaches the L7 request metrics: request-based monitoring stays green while the client fails every call. The signal lives one layer down, in ztunnel's TCP telemetry: connections closed with response_flags=DENY for the destination service. The reviewable de-escalation is a scoped PERMISSIVE PeerAuthentication on the service while the client gets enrolled into the mesh. This is deliberately a temporary security downgrade; the PR body says so and links the revert.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| denied-connections-by-source{source_principal="unknown", source_workload="plain-client", source_workload_namespace="default"} | 0.3579 |
+| denied-connections-by-source{source_principal="unknown", source_workload="unknown", source_workload_namespace="unknown"} | 0.003509 |
+| connection-security-breakdown{connection_security_policy="mutual_tls"} | 8.133 |
+| connection-security-breakdown{connection_security_policy="unknown"} | 0.3614 |
+
+### Configuration evidence
+
+- peer-authentication-policies (`PeerAuthentication demo/*`) `items[*].metadata.name`: `demo-strict`
+- peer-authentication-policies (`PeerAuthentication demo/*`) `items[*].spec.mtls.mode`: `STRICT`
+
+### Proposed patch (PeerAuthentication)
+
+```yaml
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: payments-mtls-fallback
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: payments
+  mtls:
+    mode: PERMISSIVE
+```
+
+### Rollback
+
+Enroll the denied client into the mesh (ambient label on its namespace or a sidecar) and restore STRICT. The denied-connections-by-source evidence names exactly which workloads still lack mesh identity. PERMISSIVE left in place indefinitely defeats the point of mesh mTLS.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/19 23:33:12 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:33:27 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:33:42 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:33:57 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:34:12 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:34:27 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:34:42 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:34:57 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/19 23:35:12 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

@@ -153,12 +153,19 @@ validation until the testbed grows:
 
 - **networkpolicy-new-deny** (client): the testbed CNI is kindnet, which
   does not enforce NetworkPolicy. Needs a Calico/Cilium testbed.
-- **oom-kill-resource-limit**, **image-tag-bad-rollout**,
-  **readiness-probe-misconfig**, **configmap-secret-startup-break** (client):
-  all pod-status classes whose signal is kube-state-metrics, which the stock
-  Istio Prometheus addon does not scrape. Adding kube-state-metrics to the
-  testbed would move this whole group into scope at once; a good testbed
-  enhancement, out of scope for the current addon-only Prometheus.
+- ~~**oom-kill-resource-limit**, **image-tag-bad-rollout**,
+  **readiness-probe-misconfig**, **configmap-secret-startup-break** (client)~~.
+  **Unblocked 2026-08-19**: kube-state-metrics is now part of the testbed
+  (`demo/manifests/kube-state-metrics.yaml`, applied by `01-istio.sh`), so the
+  pod-status signals these classes need are scraped. Confirmed live: 2645
+  `kube_*` series, including
+  `kube_pod_container_status_last_terminated_reason` (9),
+  `kube_pod_container_status_restarts_total` (36),
+  `kube_pod_status_ready` (96) and
+  `kube_deployment_status_replicas_unavailable` (22). The group moves back
+  into the validation queue; each still needs its fault injected and its
+  signal observed before any catalog entry is written, on the same gate as
+  every other entry. `ztunnel-node-crashloop-blackhole` moves with them.
 - **multicluster-trust-domain-mismatch** (security): needs a second cluster.
 - **destinationrule-loadbalancer-hotspot** (traffic): needs a load profile
   the single-node testbed cannot produce.

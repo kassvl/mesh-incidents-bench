@@ -1,5 +1,21 @@
 # MeshMedic adapter config for the benchmark: report-only mode (no gitops
 # section), watching the payments testbed against the whole catalog.
+#
+# Two v1.0 features are deliberately left out, and their absence is part of
+# the measurement rather than an oversight.
+#
+# `stateFile` persists incident lifecycle across restarts. That is the right
+# production setting and the wrong benchmark setting: the harness runs each
+# scenario as its own process, so a shared state file would carry one
+# scenario's open incident into the next one's scoring window. Every run must
+# start cold, seeing only the fault in front of it.
+#
+# `baselineState` enables baseline-relative thresholds, which need a healthy
+# warm-up period to learn from. The harness quiesces for 150s and then
+# injects, which is far too short to learn a baseline, so a learned threshold
+# here would be fitted to noise. Leaving it off means the relative entries
+# fall back to their static thresholds, which is the honest thing to score:
+# it is what a first-run operator gets before the tool has watched anything.
 prometheus: http://127.0.0.1:9090
 interval: 15s
 targets:
