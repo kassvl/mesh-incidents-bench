@@ -34,6 +34,7 @@ inject them cleanly.
 | `NR` | No route found | ~~missing/broken VirtualService route~~ | **validated and merged** as `no-route-blackhole` (source-keyed) | done |
 | `DF` | DNS resolution failed | proxy-side DNS failure to a destination | yes: point a ServiceEntry/host at an unresolvable name | high (also the mesh-native counterpart to the client-side `client-dns-typo`) |
 | `UF` | Upstream connection failure | backend unreachable at the connection layer | yes: wrong port / backend down | high (overlaps client-wrong-port triage; UF is the telemetry-native signal) |
+| `URX` | Upstream retry limit exceeded | retries exhausted against a flaky backend | **no on this testbed** (measured 2026-08-19): `envoy_cluster_upstream_rq_retry` exists with 5 series, all `cluster_name="xds-grpc"` (a proxy's own connection to istiod). There is no application-cluster retry counter to read, so `retry-storm-damping` cannot fire here regardless of injected fault | blocked |
 | `UC` | Upstream connection termination | backend closed the connection mid-request | yes: crash/kill the backend under load | medium |
 | `UR` | Upstream remote reset | backend sent a TCP reset | yes: backend closes abruptly | medium |
 | `URX` | Upstream retry limit exceeded | retries exhausted against a flaky backend | yes: retry policy + intermittent 5xx | medium |
