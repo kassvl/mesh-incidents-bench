@@ -1,0 +1,67 @@
+# scenario: authz-deny-flood
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T22:25:40Z
+
+meshmedic: 2026/08/20 00:25:41 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/20 00:25:41 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/20 00:25:41 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/20 00:25:41 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/20 00:25:41 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/20 00:25:41 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/20 00:25:41 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:25:56 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:26:11 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:26:26 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+## Incident: Legitimate callers denied by an authorization policy
+
+Scenario `authz-deny-flood` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **3.024** (threshold > 0.5 for 60s) since 2026-08-19T22:25:41Z.
+
+### Diagnosis
+
+A workload's calls to a service are being rejected with HTTP 403 by an Istio AuthorizationPolicy, while the caller has a valid mesh identity (this is an authorization decision, not an mTLS handshake failure). The usual causes are a DENY rule that is broader than intended or a default-deny namespace missing an ALLOW rule for this caller. No patch is proposed automatically: whether the denial is a mistake or is working as intended is a judgment only an operator can make, and auto-loosening an authorization policy could open a real security hole. Instead this entry assembles a dossier: which caller is being denied, whether it has a valid mesh identity, and every AuthorizationPolicy in the namespace with its action and rules, so the reviewer can see at a glance which policy is denying and decide.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| denied-403-by-source{source_principal="spiffe://cluster.local/ns/demo/sa/default", source_workload="loadgen", source_workload_namespace="demo"} | 1.219 |
+
+### Configuration evidence
+
+- authorization-policies (`AuthorizationPolicy demo/*`) `items[*].metadata.name`: `payments-block-loadgen`
+- authorization-policies (`AuthorizationPolicy demo/*`) `items[*].spec.action`: `DENY`
+- authorization-policies (`AuthorizationPolicy demo/*`) `items[*].spec.rules`: `[{"from":[{"source":{"principals":["cluster.local/ns/demo/sa/default"]}}]}]`
+
+### Proposed patch (AuthorizationPolicy)
+
+```yaml
+# report-only scenario: no patch is proposed.
+# The evidence above is the deliverable; act on it by hand.
+```
+
+### Rollback
+
+Not applicable: nothing is applied. If the denial is a mistake, the fix is usually a scoped ALLOW for the named caller or a correction to the too-broad DENY rule; the authorization-policies evidence names the policy to change. If the denial is intended, the caller is the thing to fix, not the mesh.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/20 00:26:42 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:26:56 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:27:11 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:27:26 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:27:41 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:27:57 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:28:11 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:28:27 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:28:42 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:28:56 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:29:11 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:29:28 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:29:41 target namespace=demo service=payments stable_subset=v1 subset=v2 workload=payments-v2 is unobserved: coverage probe failed: Get "http://127.0.0.1:9090/api/v1/query?query=count%28istio_requests_total%7Bdestination_service_namespace%3D%22demo%22%7D%29": terminated signal received
+meshmedic: 2026/08/20 00:29:41 0 targets observed, 1 unobserved, 16 scenarios blind (0 firing, 0 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0

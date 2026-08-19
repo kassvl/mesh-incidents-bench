@@ -31,7 +31,7 @@ the container args; `kubectl -n demo get svc` shows the real name is
 flat-lined to zero.
 
 **Why this scenario exists**: every other scenario in this benchmark is a fault
-that emits a pathological mesh signal — a 5xx surge, a UO overflow, a DENY at
+that emits a pathological mesh signal: a 5xx surge, a UO overflow, a DENY at
 ztunnel, a p99 blowout. MeshMedic's catalog is a set of threshold-and-hold
 detectors over exactly those signals, and the v0.2 catalog was tuned against
 these very scenarios, so it scores well on them: a structural home-field
@@ -39,15 +39,25 @@ advantage. This scenario is the honesty control for that bias. The fault here
 is real and total (100% of user-facing calls fail), but it manifests as the
 *disappearance* of telemetry, and no threshold over `istio_requests_total`,
 latency histograms, retry counters, or TCP `DENY` flags can fire on an absence.
-MeshMedic is expected to score **0 / 6 here by design**: every catalog query is
-scoped to `payments`, all of them return no data once traffic stops, and
-MeshMedic treats no-data as "quiet, not an incident" — correct for a mesh that
-genuinely has no traffic, wrong for a service whose callers have all gone dark.
-An agentic investigator (kubectl logs / describe / events + Prometheus) that
-reads `loadgen`'s logs and its Deployment spec can root-cause this in a few
-steps. The scenario measures breadth: whether a tool can diagnose a client-side
-fault that lives outside the mesh's own metrics. Catalog-based mesh tools,
-MeshMedic included, are supposed to fail it, and the leaderboard should say so.
+When this scenario was written it predicted **0 / 6 for MeshMedic by design**:
+every catalog query is scoped to `payments`, all of them return no data once
+traffic stops, and MeshMedic treated no-data as "quiet, not an incident", which
+is correct for a mesh that genuinely has no traffic and wrong for a service
+whose callers have all gone dark. MeshMedic scored 0 on the first run, as
+predicted.
+
+The prediction had a loophole, and the record of it is kept here rather than
+edited away. An absence *is* detectable deterministically, with `or vector(0)`
+plus a `max_over_time` baseline to prove traffic used to flow; and once a
+detector knows traffic vanished, the caller's own logs and the most recent
+rollout diff usually hold the root cause verbatim. MeshMedic's triage layer
+does that, and it scores 6 / 6 here as of v1.0 (see
+[results/meshmedic.md](../../results/meshmedic.md)).
+
+What the scenario measures is unchanged: breadth, meaning whether a tool can
+diagnose a client-side fault that lives outside the mesh's own metrics, and
+whether it resists inventing a mesh cause for a service that is healthy. The
+0-point row still exists for exactly that failure.
 
 ## Scoring rubric
 

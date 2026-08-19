@@ -1,0 +1,69 @@
+# scenario: fault-injection-left
+# tool: /tmp/mmbin/meshmedic watch --config harness/meshmedic-watch.yaml
+# date: 2026-08-19T22:39:40Z
+
+meshmedic: 2026/08/20 00:39:42 UNLOCKED retry-storm-damping: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/20 00:39:42 UNLOCKED waypoint-overload-scale: not in embedded catalog.lock: never approved, so it is not an entry anyone reviewed
+meshmedic: 2026/08/20 00:39:42 2 of 18 entries will not run because they are unlocked; run `meshmedic approve` after validating them
+meshmedic: 2026/08/20 00:39:42 no stateFile configured: a restart will re-open incidents that are still breaching
+meshmedic: 2026/08/20 00:39:42 watching 18 scenarios for 1 targets against http://127.0.0.1:9090 every 15s
+meshmedic: 2026/08/20 00:39:42 ingress-edge-outage|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: not applicable to this target, signal needs a param the target does not define: template: ingress-edge-outage:1:83: executing "ingress-edge-outage" at <.ingress_workload>: map has no entry for key "ingress_workload"
+meshmedic: 2026/08/20 00:39:43 1 targets observed, 0 unobserved, 0 scenarios blind (1 firing, 14 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:40:00 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:40:13 1 targets observed, 0 unobserved, 0 scenarios blind (4 firing, 11 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:40:28 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:40:43 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:40:58 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+## Incident: Fault-injection VirtualService left in production
+
+Scenario `fault-injection-left-in-production` (severity critical) fired for `namespace=demo` `service=payments` `stable_subset=v1` `subset=v2` `workload=payments-v2`.
+
+The signal has held at **1.619** (threshold > 0.5 for 60s) since 2026-08-19T22:39:57Z.
+
+### Diagnosis
+
+A VirtualService is injecting faults (aborts or delays) into live traffic: requests fail with the FI response flag, usually a leftover from a chaos test or a staging config that reached production. The FI flag is the tell. Unlike a genuine 5xx surge, the endpoints are healthy and the failures are synthetic, so outlier ejection would evict good hosts for no reason and a backend fix would find nothing wrong. No patch is proposed automatically: removing a fault stanza cleanly needs the VirtualService's real routes, and regenerating it would risk replacing a considered routing table. Instead this entry pins the offending VirtualService and its fault configuration so the operator can remove exactly that stanza.
+
+### Evidence
+
+| query | value |
+| --- | --- |
+| fault-injected-rate | 0.6495 |
+
+### Configuration evidence
+
+- virtualservice-fault (`VirtualService demo/payments`) `spec.http[*].fault`: `{"abort":{"httpStatus":503,"percentage":{"value":50}}}`
+
+### Proposed patch (VirtualService)
+
+```yaml
+# report-only scenario: no patch is proposed.
+# The evidence above is the deliverable; act on it by hand.
+```
+
+### Rollback
+
+Not applicable: nothing is applied. Remove the fault stanza from the named VirtualService, preserving the existing routes and weights. If the fault injection is intentional (an active chaos experiment), this is working as designed and the alert is the thing to silence, not the config.
+
+This scenario requires human approval; nothing was applied to the cluster.
+
+meshmedic: 2026/08/20 00:41:13 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:41:27 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:41:43 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:41:57 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:42:13 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:42:13 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:42:28 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:42:28 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:42:42 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:42:42 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:42:57 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:42:57 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:43:13 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:43:13 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+meshmedic: 2026/08/20 00:43:28 error-surge-outlier-ejection|namespace=demo|service=payments|stable_subset=v1|subset=v2|workload=payments-v2: suppressed by fault-injection-left-in-production: cascade symptom, not a second incident
+meshmedic: 2026/08/20 00:43:28 1 targets observed, 0 unobserved, 0 scenarios blind (2 firing, 13 clear, 2 unlocked)
+
+# tool_wall_seconds: 240
+# cluster_objects_created_during_run: 0
+# cluster_objects_deleted_during_run: 0
