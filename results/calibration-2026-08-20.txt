@@ -1,0 +1,33 @@
+meshmedic: 2026/08/20 05:33:50 observing 18 entries across 1 targets for 12m0s, sampling every 15s
+meshmedic: 2026/08/20 05:33:50 the cluster must be healthy for this to mean anything: no injected faults, no ongoing incident
+meshmedic: 2026/08/20 05:36:05 10 samples taken, 9m44s remaining
+meshmedic: 2026/08/20 05:38:35 20 samples taken, 7m14s remaining
+meshmedic: 2026/08/20 05:41:05 30 samples taken, 4m45s remaining
+meshmedic: 2026/08/20 05:43:35 40 samples taken, 2m14s remaining
+ID                                  TARGET         VERDICT         PEAK   THRESHOLD  HEADROOM  NOTE
+authz-deny-flood                    payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+connection-pool-overflow            payments.demo  unmeasured      -      > 1        -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+external-authz-denial               payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+fault-injection-left-in-production  payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+no-route-blackhole                  payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+rate-limit-throttling               payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+retry-storm-damping                 payments.demo  unmeasured      -      > 50       -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+route-timeout-too-short             payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+upstream-dependency-errors          payments.demo  unmeasured      -      > 0.5      -         no sample resolved (48 empty results): this entry's silence says nothing about its calibration
+upstream-dependency-latency         payments.demo  marginal        169    > 200      1.18x     stayed quiet, but its healthy extreme is only 1.2x from the threshold
+canary-latency-rollback             payments.demo  calibrated      347.5  > 1000     2.88x     quiet with 2.88x headroom
+error-surge-outlier-ejection        payments.demo  calibrated      0      > 0.15     inf       quiet with +Infx headroom
+latency-regression-vs-baseline      payments.demo  calibrated      400.8  > 1000     2.49x     quiet with 2.49x headroom
+mtls-policy-conflict-ambient        payments.demo  calibrated      0      > 0.2      inf       quiet with +Infx headroom
+traffic-vanished-triage             payments.demo  calibrated      0      > 0.5      inf       quiet with +Infx headroom
+upstream-host-ejection-flood        payments.demo  calibrated      0      > 1        inf       quiet with +Infx headroom
+waypoint-overload-scale             payments.demo  calibrated      15.98  > 1000     62.6x     quiet with 62.6x headroom
+ingress-edge-outage                 payments.demo  not-applicable  -      > 0.5      -         signal needs a parameter this target does not define
+
+7 calibrated, 1 marginal, 0 miscalibrated, 9 unmeasured, 1 not applicable
+
+1 entries stayed quiet but are close enough that an ordinary busy day fires them.
+  Silence today is not calibration. Widen the gap or make the threshold relative.
+9 entries produced no readings, so their silence proves nothing about them.
+  Run `meshmedic validate --against-prometheus` to find out whether the metric is missing,
+  the selector matches nothing, or this target simply has no traffic of that kind.
