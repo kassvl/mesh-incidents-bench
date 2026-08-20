@@ -4,7 +4,7 @@
   (`meshmedic watch`, full catalog, no gitops)
 - Date: 2026-08-19 (UTC), testbed: kind + Istio 1.24 ambient, single node
 - Raw output: `raw/*-meshmedic-*.txt`, the 2026-08-19T21:00Z and later timestamps
-- Calibration of the same target, taken separately: `calibration-2026-08-19.txt`
+- Calibration of the same target, on an idle cluster the next day: `calibration-2026-08-20.txt`
 
 **Disclosure**: this benchmark and MeshMedic share an author, and the scenarios
 overlap MeshMedic's remediation catalog. More than that: several catalog
@@ -44,34 +44,71 @@ which reads as coverage it did not have.
 `noise-only` inverts the rubric: an empty ConfigMap, an endpoint-less Service
 and a completed one-off pod sit in a healthy namespace, and silence is the
 correct answer. MeshMedic reported no incident for the whole window, which is
-what the rubric scores, so the 2 is earned on its face.
+what the rubric scores, so the 2 stands.
 
-It is not the whole truth. The per-cycle summary shows `1 firing` for the last
-three ticks of that run. `upstream-dependency-latency` had entered breach on a
-healthy cluster and was stopped from becoming a reported incident only by its
-90-second hold duration. The window closed first.
+It is not the whole truth, and the first version of this page got the
+correction itself wrong. Both are worth writing down.
 
-Running `meshmedic calibrate` against the same target afterwards says the same
-thing without needing luck:
+**What happened.** The per-cycle summary showed a breach for the last three
+ticks of that run: `upstream-dependency-latency`, whose signal is the watched
+service's outbound p99 to its dependencies, went over its 200ms threshold on a
+cluster where nothing had been injected into that path. Reading the same
+window afterwards, the breach began at 21:41:30Z and ran unbroken for **180
+seconds**. The tool's window closed 25 seconds into it. The entry's hold
+duration is 90 seconds, so had the run lasted two minutes longer, MeshMedic
+would have published an incident about a dependency that was never slow, and
+`noise-only` would have scored 0. The 2 is the scoring window's timing, not
+the design's.
 
-```
-upstream-dependency-latency  marginal  peak 222.6  > 200  headroom 0.898x
-  crossed the threshold for 30s on a healthy cluster without reaching its
-  1m30s hold duration: it fires the moment a healthy day runs slightly longer
-```
+**What this page said the first time, and why it was wrong.** It quoted a
+calibration run reporting a healthy peak of 222.6ms against the 200ms
+threshold, and concluded the headroom was negative. That calibration was
+started five minutes after a scenario reset. `meshmedic calibrate` prints
+`the cluster must be healthy for this to mean anything: no injected faults, no
+ongoing incident` before it takes a sample, and the condition was not met: the
+previous fault was still decaying out of a two-minute rate window. The number
+was a measurement of the tail, not of health, and two other entries were
+called marginal on the same bad sample.
 
-Its healthy extreme is **above** its threshold. The headroom is negative. Two
-more entries are marginal on the same target (`canary-latency-rollback` at
-1.18x, `latency-regression-vs-baseline` at 1.54x), and ten produce no readings
-at all on a healthy cluster, so their silence proves nothing about them. On
-this target the calibration gate **fails**: 4 calibrated, 3 marginal, 0
-miscalibrated, 10 unmeasured.
+Re-run on a genuinely idle cluster over twelve minutes
+(`calibration-2026-08-20.txt`):
 
-So the honest reading of this page is two sentences, not one. MeshMedic
-recognises every fault in the benchmark and names the offending field in each.
-Its thresholds are not yet calibrated for the cluster it recognises them on,
-and a perfect fault-detection score says nothing about that, because a
-benchmark made of faults cannot measure the quiet.
+| entry | first, contaminated | clean |
+| --- | --- | --- |
+| `upstream-dependency-latency` | 0.898x, negative | **1.18x, marginal** |
+| `canary-latency-rollback` | 1.18x, marginal | **2.88x, calibrated** |
+| `latency-regression-vs-baseline` | 1.54x, marginal | **2.49x, calibrated** |
+| gate verdict | 3 marginal | **1 marginal**, 9 unmeasured |
+
+Two entries were named as problems that are not. The gate still does not pass
+on this target, because one marginal entry and nine that produce no readings
+are both reasons to withhold a pass, but the specifics were wrong and are
+corrected here rather than quietly edited.
+
+**The sharper finding underneath.** The two measurements do not disagree; they
+sampled different regimes. Idle, this signal peaks at 169ms. Across the full
+benchmark suite, with pods cycling and load shifting and *other* entries'
+faults live, it peaks at 433ms and spends 180 unbroken seconds over 200ms. The
+injected fault this entry exists to catch reaches 493ms. A healthy spike and a
+real fault are 1.14x apart, which no threshold can separate.
+
+So the limitation is not this entry's number. It is the gate's sampling: it
+measures the cluster it is pointed at, at the moment it is pointed, and an
+idle moment is not the only healthy moment. A gate that only ever sees the
+quiet regime will keep calling entries calibrated that an ordinary busy hour
+fires.
+
+The catalog's answer, made after these measurements: the entry now fires at
+four times its own learned normal rather than at a fixed 200ms, and holds for
+five minutes rather than ninety seconds. The hold is the part that does the
+work, because the two regimes are separable by duration and not by height, and
+five minutes clears the worst observed transient by 1.7x.
+
+So the honest reading of this page is two sentences. MeshMedic recognises
+every fault in the benchmark and names the offending field in each. Whether
+its thresholds hold up on a cluster that is doing ordinary things is a
+different question, one a benchmark made of faults cannot ask, and the one
+place this suite did ask it, the answer was no.
 
 ## Notes per scenario
 
